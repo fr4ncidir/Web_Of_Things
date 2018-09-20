@@ -23,6 +23,7 @@
 #  
 
 from pkg_resources import resource_filename
+from sepy.YSparqlObject import YSparqlObject as YSparql
 
 # Plain SPARQL
 SPARQL_QUERY_ALL = "select * where {?a ?b ?c}"
