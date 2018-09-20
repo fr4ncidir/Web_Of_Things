@@ -19,11 +19,8 @@ The alarm sequence is the following:
 _When the first smoke sensor detects smoke, all red lights are switched on.
 If, in 60 seconds, another sensor (both temperature, or smoke) is triggered, 
 this means that a fire is starting. Otherwise, nothing to do.
-
 When the fire start is detected, the procedure starts:
-
 The sound alarm starts.
-
 A 60 seconds timer starts, to give time to people to run away.
 After those 60 seconds, gas emitters start their job, reducing oxigen 
 in the room._
