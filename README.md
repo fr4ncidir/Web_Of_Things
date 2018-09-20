@@ -194,24 +194,37 @@ methods are not compulsory, and should be given as lambdas, or functions
 with added and removed parameters.
 
 ##### Being notified of Events
+In order to receive the notification of an Event, the procedure is the 
+following.
 
+First of all, you have to retrieve an image of the Event, as we did for
+Actions. Therefore,
+```
+myEventImage = Event.buildFromQuery(myEngine,eventURI)
+```
+Once you have that image, you can start and stop observing notifications:
+```
+myEventImage.observe(handler)
+myEventImage.stop_observing()
+```
+where `handler` is as usual a lambda, or a full handler for subscription
+notification.
 
-
-
-##### _Install_
+### 3. Install Cocktail
+_TODO_
 ```
 $ python3 setup.py build
 $ python3 setup.py sdist
 $ sudo python3 setup.py \[install|develop\]
 ```
 
-### 3. Tests
+### 4. Tests
 For now, tests are available only to check ontology consistency.
 ```
 $ python3 setup.py test
 ```
 
-### 4. Examples
+### 5. Other Examples
 ##### _Coding_
 To have an example on how to make a WebThing, have a look to the following files.
 1. `new_thing_example.py`
