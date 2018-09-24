@@ -83,7 +83,7 @@ class Property(InteractionPattern):
     
     @classmethod
     def getBindingList(self):
-        _,fB = YSparql(newProperty,external_prefixes=WotPrefs).getData()
+        _,fB = YSparql(newProperty,external_prefixes=WotPrefs).getData(noExcept=True)
         return fB.keys()
 
     @staticmethod

@@ -114,7 +114,7 @@ class Event(InteractionPattern):
         """
         if event_type not in EType:
             raise ValueError
-        _,fB = YSparql(PATH_SPARQL_NEW_EVENT_TEMPLATE.format(event_type.value),external_prefixes=WotPrefs).getData()
+        _,fB = YSparql(PATH_SPARQL_NEW_EVENT_TEMPLATE.format(event_type.value),external_prefixes=WotPrefs).getData(noExcept=True)
         return fB.keys()
         
     def deleteInstance(self,instance):

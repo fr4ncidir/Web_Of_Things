@@ -57,7 +57,7 @@ class DataSchema:
         
     @classmethod
     def getBindingList(self):
-        _,fB = YSparql(PATH_SPARQL_NEW_PROPERTY,external_prefixes=WotPrefs).getData()
+        _,fB = YSparql(PATH_SPARQL_NEW_DATASCHEMA,external_prefixes=WotPrefs).getData(noExcept=True)
         return fB.keys()
     
     @staticmethod

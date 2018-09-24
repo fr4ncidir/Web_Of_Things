@@ -199,7 +199,7 @@ class Action(InteractionPattern):
         """
         if action_type not in AType:
             raise ValueError
-        _,fB = YSparql(PATH_SPARQL_NEW_ACTION_TEMPLATE.format(action_type.value),external_prefixes=WotPrefs).getData()
+        _,fB = YSparql(PATH_SPARQL_NEW_ACTION_TEMPLATE.format(action_type.value),external_prefixes=WotPrefs).getData(noExcept=True)
         return fB.keys()
         
     @staticmethod

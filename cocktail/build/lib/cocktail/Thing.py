@@ -113,5 +113,5 @@ class Thing:
         """
         Utility function to know how you have to format the bindings for the constructor.
         """
-        _,fB = YSparql(newThing,external_prefixes=WotPrefs).getData()
+        _,fB = YSparql(newThing,external_prefixes=WotPrefs).getData(noExcept=True)
         return fB.keys()
