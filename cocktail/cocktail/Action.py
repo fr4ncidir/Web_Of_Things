@@ -105,7 +105,7 @@ class Action(InteractionPattern):
         Posts the Action to the rdf store, together with its forced bindings.
         """
         assert not self.isInferred()
-        sparql,fB = YSparql(PATH_SPARQL_NEW_ACTION_TEMPLATE.format(self._type.value),external_prefixes=WotPrefs).getData(fB_values=self._bindings)
+        sparql,fB = YSparql(PATH_SPARQL_NEW_ACTION_TEMPLATE(self._type.value),external_prefixes=WotPrefs).getData(fB_values=self._bindings)
         self._sepa.update(sparql,fB)
         logger.debug("Posting action {}: {}".format(self.name,self.uri))
         
@@ -181,7 +181,7 @@ class Action(InteractionPattern):
         assert not self.isInferred()
         if (ts_type.lower() != "completion") and (ts_type.lower() != "confirmation"):
             raise ValueError("Only 'completion' and 'confirmation' are valid keys")
-        sparql,fB = YSparql(PATH_SPARQL_NEW_TS_TEMPLATE.format(ts_type.lower()),external_prefixes=WotPrefs).getData(fB_values={"aInstance": instance})
+        sparql,fB = YSparql(PATH_SPARQL_NEW_TS_TEMPLATE(ts_type.lower()),external_prefixes=WotPrefs).getData(fB_values={"aInstance": instance})
         self._sepa.update(sparql,fB)
         
     @property
@@ -198,7 +198,7 @@ class Action(InteractionPattern):
         """
         if action_type not in AType:
             raise ValueError
-        _,fB = YSparql(PATH_SPARQL_NEW_ACTION_TEMPLATE.format(action_type.value),external_prefixes=WotPrefs).getData(noExcept=True)
+        _,fB = YSparql(PATH_SPARQL_NEW_ACTION_TEMPLATE(action_type.value),external_prefixes=WotPrefs).getData(noExcept=True)
         return fB.keys()
         
     @staticmethod
@@ -248,18 +248,18 @@ class Action(InteractionPattern):
         assert self.isInferred()
         if confirm_handler is not None:
             # in case i'm interested in capturing the confirm flag
-            sparql,fB = YSparql(PATH_SPARQL_QUERY_TS_TEMPLATE.format("confirmation"),external_prefixes=WotPrefs).getData(fB_values={"aInstance": bindings["newAInstance"]})
+            sparql,fB = YSparql(PATH_SPARQL_QUERY_TS_TEMPLATE("confirmation"),external_prefixes=WotPrefs).getData(fB_values={"aInstance": bindings["newAInstance"]})
             self._sepa.subscribe(sparql,fB=fB,alias=bindings["newAInstance"],handler=confirm_handler)
         if completion_handler is not None:
             # in case i'm interested in capturing the completion flag
-            sparql,fB = YSparql(PATH_SPARQL_QUERY_TS_TEMPLATE.format("completion"),external_prefixes=WotPrefs).getData(fB_values={"aInstance": bindings["newAInstance"]})
+            sparql,fB = YSparql(PATH_SPARQL_QUERY_TS_TEMPLATE("completion"),external_prefixes=WotPrefs).getData(fB_values={"aInstance": bindings["newAInstance"]})
             self._sepa.subscribe(sparql,fB=fB,alias=bindings["newAInstance"],handler=completion_handler)
         if output_handler is not None:
             # in case i'm interested in capturing the output
             sparql,fB = YSparql(PATH_SPARQL_QUERY_INSTANCE_OUTPUT,external_prefixes=WotPrefs).getData(fB_values={"instance": bindings["newAInstance"]})
             self._sepa.subscribe(sparql,fB=fB,alias=bindings["newAInstance"],handler=output_handler)
         req_type = AType.INPUT_ACTION.value if (self._type is AType.INPUT_ACTION or self._type is AType.IO_ACTION) else AType.EMPTY_ACTION.value
-        sparql,fB = YSparql(PATH_SPARQL_NEW_ACTION_INSTANCE_TEMPLATE.format(req_type),external_prefixes=WotPrefs).getData(fB_values=bindings)
+        sparql,fB = YSparql(PATH_SPARQL_NEW_ACTION_INSTANCE_TEMPLATE(req_type),external_prefixes=WotPrefs).getData(fB_values=bindings)
         self._sepa.update(sparql,fB)
         return bindings["newAInstance"]
             
