@@ -23,14 +23,7 @@
 #  
 
 from abc import abstractmethod
-
-import sepy.utils as utils
-from sepy.YSparqlObject import YSparqlObject as YSparql
 from sepy.tablaze import tablify
-
-from .constants import SPARQL_PREFIXES as WotPrefs
-from .constants import PATH_SPARQL_DELETE_IP as delIP
-from .constants import PATH_SPARQL_QUERY_INTERACTION_PATTERN as queryIP
 
 import logging
 
@@ -76,8 +69,9 @@ class InteractionPattern:
             tag = "action"
         else:
             raise ValueError("Bad bindings!")
-        sparql,fB = YSparql(delIP,external_prefixes=WotPrefs).getData(fB_values={"ip": self._bindings[tag]})
-        self._sepa.update(sparql,fB)
+        # sparql,fB = YSparql(delIP,external_prefixes=WotPrefs).getData(fB_values={"ip": self._bindings[tag]})
+        # self._sepa.update(sparql,fB)
+        self._sepa.update("DELETE_INTERACTION_PATTERN",forcedBindings={"ip": self._bindings[tag]})
         
     @abstractmethod
     def post(self):
@@ -96,10 +90,11 @@ class InteractionPattern:
         'td_uri' and 'ip_type' params. 
         'nice_output' prints to console a table with the result.
         """
-        sparql,fB = YSparql(queryIP,external_prefixes=WotPrefs).getData(fB_values={"td_uri": td_uri, "ipattern_type_specific": ip_type})
-        d_output = sepa.query(sparql,fB)
+        # sparql,fB = YSparql(queryIP,external_prefixes=WotPrefs).getData(fB_values={"td_uri": td_uri, "ipattern_type_specific": ip_type})
+        # d_output = sepa.query(sparql,fB)
+        d_output = sepa.query("DISCOVER_INTERACTION_PATTERNS",forcedBindings={"td_uri": td_uri, "ipattern_type_specific": ip_type})
         if nice_output:
-            tablify(d_output,prefix_file=WotPrefs.split("\n"))
+            tablify(d_output,prefix_file=sepa.get_namespaces(stringList=True))
         return d_output
         
     def deleteInstance(self,instance):

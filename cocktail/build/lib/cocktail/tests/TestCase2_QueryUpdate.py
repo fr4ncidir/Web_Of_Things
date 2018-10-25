@@ -1,7 +1,7 @@
 #!/usr/bin python3
 # -*- coding: utf-8 -*-
 #
-#  test_1_queries.py
+#  TestCase2_QueryUpdate.py
 #  
 #  Copyright 2018 Francesco Antoniazzi <francesco.antoniazzi@unibo.it>
 #  
@@ -24,209 +24,202 @@
 
 import unittest
 
-from cocktail.constants import SPARQL_INSERT_THING1, SPARQL_INSERT_THING2, SPARQL_INSERT_THING3
-from cocktail.constants import SPARQL_PREFIXES as WotPrefs
-from cocktail.constants import PATH_SPARQL_QUERY_PROPERTY as queryProperty
-from cocktail.constants import PATH_SPARQL_QUERY_TS_TEMPLATE, RES_SPARQL_NEW_TS_TEMPLATE
-from cocktail.constants import PATH_SPARQL_QUERY_THING, RES_SPARQL_NEW_THING
-from cocktail.constants import RES_SPARQL_QUERY_ALL
-from cocktail.constants import RES_SPARQL_QUERY_ALL_NEW_DATASCHEMA
-from cocktail.constants import RES_SPARQL_NEW_PROPERTY, RES_SPARQL_NEW_PROPERTY_UPDATE
-from cocktail.constants import RES_SPARQL_QUERY_ALL_NEW_DS_ACTIONS, RES_SPARQL_QUERY_ALL_NEW_DS_EVENTS
-from cocktail.constants import PATH_SPARQL_QUERY_ACTION, RES_SPARQL_NEW_ACTIONS
-from cocktail.constants import PATH_SPARQL_QUERY_EVENT, RES_SPARQL_NEW_EVENTS
-from cocktail.constants import PATH_SPARQL_QUERY_ACTION_INSTANCE, RES_SPARQL_NEW_ACTION_INSTANCE_TEMPLATE
-from cocktail.constants import PATH_SPARQL_QUERY_INSTANCE_OUTPUT, RES_SPARQL_NEW_INSTANCE_OUTPUT
-from cocktail.constants import RES_SPARQL_NEW_ACTION_INSTANCE_UPDATE_TEMPLATE, RES_SPARQL_NEW_EVENT_INSTANCE_TEMPLATE
-from cocktail.constants import PATH_SPARQL_QUERY_EVENT_INSTANCE
-from cocktail.constants import RES_SPARQL_NEW_EVENT_INSTANCE_UPDATE_TEMPLATE
+import json
 
 from cocktail.Thing import Thing
 from cocktail.DataSchema import DataSchema
 from cocktail.Property import Property
 from cocktail.Action import *
 from cocktail.Event import *
+from cocktail.utils import *
+from cocktail import __name__ as cName
 
-import sepy.utils as utils
-from sepy.Sepa import Sepa as Engine
-from sepy.YSparqlObject import ysparql_to_string as y2str
+from sepy.SEPA import SEPA
+from sepy.SAPObject import SAPObject
 
-def reset_testbase(graph):
-    graph.clear()
-    graph.update(y2str(SPARQL_INSERT_THING1))
-    graph.update(y2str(SPARQL_INSERT_THING2))
-    graph.update(y2str(SPARQL_INSERT_THING3))
+from pkg_resources import resource_filename
+from os.path import isfile, splitext
+from os import listdir
+from copy import deepcopy
     
-def add_action_instance_ts(graph,instance,action):
-    for c in ["confirmation","completion"]:
-        action._post_timestamp(c,instance)
-        if not utils.query_CompareUpdate(graph,
-                PATH_SPARQL_QUERY_TS_TEMPLATE.format(c),
-                {"aInstance": instance},
-                False,
-                RES_SPARQL_NEW_TS_TEMPLATE.format(c),
-                "test_{}_action_instance {}".format(action.type.value,c.upper()),
-                ignore=["ts"],
-                prefixes=WotPrefs):
-            return False
-    return True
+# def add_action_instance_ts(graph,instance,action):
+    # for c in ["confirmation","completion"]:
+        # action._post_timestamp(c,instance)
+        # if not utils.query_CompareUpdate(graph,
+                # PATH_SPARQL_QUERY_TS_TEMPLATE(c),
+                # {"aInstance": instance},
+                # False,
+                # RES_SPARQL_NEW_TS_TEMPLATE(c),
+                # "test_{}_action_instance {}".format(action.type.value,c.upper()),
+                # ignore=["ts"],
+                # prefixes=WotPrefs):
+            # return False
+    # return True
+
+def read_all_file(filename):
+    path = resource_filename(__name__,filename)
+    with open(path,"r") as myFile:
+        content = myFile.read()
+    return content
 
 class TestCase2_QueryUpdate(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.engine = Engine()
+        sap_file = generate_cocktail_sap(None)
+        self.ysap = SAPObject(yaml.load(sap_file))
+        self.engine = SEPA(sapObject=self.ysap,logLevel=logging.INFO)
         
     def setUp(self):
-        self.test_0()
+        self.engine.clear()
+        self.engine.sparql_update(read_all_file("insert_thing_1.sparql"))
+        self.engine.sparql_update(read_all_file("insert_thing_2.sparql"))
+        self.engine.sparql_update(read_all_file("insert_thing_3.sparql"))
         
     def test_0(self):
-        try:
-            self.engine.query_all()
-        except Exception as e:
-            self.skipTest(str(e))
+        self.assertTrue(compare_queries(self.engine.query_all(),
+                                resource_filename(__name__,"res_query_all.json"),
+                                show_diff=True))
         
     def test_1(self):
-        # reset the rdf store, puts the 3 test web things and checks
-        print("\nRDF store reset; test backgroung setup and check")
-        reset_testbase(self.engine)
-        self.assertTrue(utils.query_FileCompare(self.engine,fileAddress=RES_SPARQL_QUERY_ALL))
-        
+        """
+        This function performs all the queries available in ./queries folder, 
+        and checks the corresponding result if there is coincidence. In 
+        case of reset==True, results file are rewritten.
+        True or False is returned for success or failure.
+        """
+        dir_path = resource_filename(cName,"queries")
+        for fileName in listdir(dir_path):
+            filePath = dir_path + "/" + fileName
+            if (isfile(filePath) and (splitext(filePath)[1] == ".sparql")):
+                sapKey = list(sparqlFolderToSap(dir_path,file_filter=fileName).keys())[0]
+                self.assertTrue(
+                    compare_queries(self.engine.query(sapKey),
+                        resource_filename(__name__,splitext("res_"+fileName)[0]+".json")))
+    
     def test_2(self):
         """
-        This function performs all the queries available in ./queries folder, and checks the
-        corresponding result if there is coincidence. In case of reset==True, results file are 
-        rewritten.
+        This function performs checks for adding and removing all is 
+        needed for a new web thing. In case reset==True, the specific 
+        thing query result file is rebuilt.
         True or False is returned for success or failure.
         """
-        from pkg_resources import resource_filename
-        from cocktail import __name__ as cName
-        import os
-        print("\nQueries check")
-        # listing all files in ./queries, filtering hidden (starting with '.') and directories
-        dir_path = resource_filename(cName,"queries/")
-        for fileName in list(filter(lambda myfile: not (myfile.startswith(".") or os.path.isdir(dir_path+myfile)),os.listdir(dir_path))):
-            self.assertTrue(utils.query_CompareUpdate(self.engine,
-                dir_path+fileName,
-                {}, False,
-                (dir_path+"results/res_{}").format(fileName).replace(".sparql",".json"),
-                log_message=fileName,
-                prefixes=WotPrefs))
-    
-    def test_3(self):
-        """
-        This function performs checks for adding and removing all is needed for a new web thing.
-        In case reset==True, the specific thing query result file is rebuilt.
-        True or False is returned for success or failure.
-        """
-        print("\nTest new thing")
         SUPERTHING = "<http://MyFirstWebThing.com>"
         THING_URI = "<http://TestThing.com>"
 
         # Adding new thing within the forced bindings
-        dummyThing = Thing(self.engine,{"thing": THING_URI,"newName": "TEST-THING","newTD": "<http://TestTD.com>" },superthing=SUPERTHING).post()
+        dummyThing = Thing(self.engine,
+            { "thing": THING_URI,
+            "newName": "TEST-THING",
+            "newTD": "<http://TestTD.com>" }, superthing=SUPERTHING).post()
         
-        self.assertTrue(utils.query_CompareUpdate(self.engine,
-            PATH_SPARQL_QUERY_THING,
-            {}, False,
-            RES_SPARQL_NEW_THING,
-            "test_thing ADD",
-            replace={"(?thing_uri ?name_literal ?td_uri)": "({} ?name_literal ?td_uri) ({} ?name_literal ?td_uri)".format(THING_URI,SUPERTHING)},
-            prefixes=WotPrefs))
+        sparql_query = self.engine.sap.getQuery("DISCOVER_THINGS").replace("(UNDEF UNDEF UNDEF)",
+            "({} UNDEF UNDEF) ({} UNDEF UNDEF)".format(THING_URI,SUPERTHING))
+        query_result = self.engine.sparql_query(sparql_query)
+        self.assertTrue(compare_queries(query_result,
+            resource_filename(__name__,"res_new_thing.json")))
             
-        # Passing through this point also in reset case allows not to refresh the RDF store into the following test.
-        # Deleting the thing, and checking if the triples in all the store are the same as if all the test never happened
+        # Passing through this point also in reset case allows not to 
+        # refresh the RDF store into the following test.
+        # Deleting the thing, and checking if the triples in all the store 
+        # are the same as if all the test never happened
         dummyThing.delete()
 
-        # With this line, if it outputs True, we certify that the contents of the RDF store are exactly the same as they were
-        # at the beginning of this function. So, no need to call reset_testbase
-        self.assertTrue(utils.query_FileCompare(self.engine,message="test_thing DELETE",fileAddress=RES_SPARQL_QUERY_ALL))
+        # With this line, if it outputs True, we certify that the contents 
+        # of the RDF store are exactly the same as they were at the beginning 
+        # of this function. So, no need to call reset_testbase
+        self.test_0()
         
-    def test_4(self):
+    def test_3(self):
         """
-        This function performs checks for adding, updating and removing a new Property to a web thing.
-        Notice that to do so, it is required to test also DataSchema and FieldSchema updates. Those two classes
+        This function performs checks for adding, updating and removing 
+        a new Property to a web thing. Notice that to do so, it is required 
+        to test also DataSchema and FieldSchema updates. Those two classes
         are not made to be removed, because they can always be used by other things. 
         
-        TODO The procedure to remove them is more complex and involves some queries before performing the delete.
+        TODO The procedure to remove them is more complex and involves 
+        some queries before performing the delete.
         
-        In case reset==True, check jsons are updated. However, the plain 'res_query_all' is not overwritten, because
-        the presence of new DataSchema and FieldSchema here requires the existance of a different file named
-        'res_query_all_new_dataschema.json'.
+        In case reset==True, check jsons are updated. However, the plain 
+        'res_query_all' is not overwritten, because the presence of new 
+        DataSchema and FieldSchema here requires the existance of a different 
+        file named 'res_query_all_new_dataschema.json'.
         
         True or False is returned for success or failure.
         """
         THING_URI = "<http://TestThing.com>"
-        DATASCHEMA_URI = "<http://TestThing.com/Property1/DataSchema/property>"
         PROPERTY_URI = "<http://TestProperty.com>"
         NEW_PROPERTY_VALUE = "HIJKLMNOP"
         TEST_TD = "<http://TestTD.com>"
-        
-        print("\nTest new Property")
-        self.assertTrue(utils.query_FileCompare(self.engine,fileAddress=RES_SPARQL_QUERY_ALL,message="test_property start check"))
 
         # Adding new Dataschema and its corresponding FieldSchema
-        dummy_DS = DataSchema(self.engine, {  "ds_uri": DATASCHEMA_URI,
-                                        "fs_uri": "xsd:string",
-                                        "fs_types": "xsd:_, wot:FieldSchema"}).post()
+        DataSchema(self.engine, 
+            { "ds_uri": "<http://TestThing.com/Property1/DataSchema/property>",
+            "fs_uri": "xsd:string",
+            "fs_types": "xsd:_, wot:FieldSchema"}).post()
         
         # Adding the new thing
-        dummyThing = Thing(self.engine,{"thing": THING_URI,"newName": "TEST-THING","newTD": TEST_TD }).post()
+        dummyThing = Thing(self.engine,
+            {"thing": THING_URI,
+            "newName": "TEST-THING",
+            "newTD": TEST_TD }).post()
         # Adding the property
         p_fBindings = { "td": TEST_TD,
                         "property": PROPERTY_URI,
                         "newName": "TEST-PROPERTY",
                         "newStability": "1",
                         "newWritability": "true",
-                        "newDS": DATASCHEMA_URI,
+                        "newDS": "<http://TestThing.com/Property1/DataSchema/property>",
                         "newPD": "<http://TestThing.com/Property1/PropertyData>",
                         "newValue": "ABCDEFG"}
         testProperty = Property(self.engine,p_fBindings).post()
         
         # Querying the property to check it
-        sparql,fB = YSparql(queryProperty,external_prefixes=WotPrefs).getData(fB_values={"property_uri": PROPERTY_URI})
-        self.assertTrue(utils.query_FileCompare(self.engine,sparql=sparql,fB=fB,message="test_property ADD",fileAddress=RES_SPARQL_NEW_PROPERTY))
-        
+        query_result = self.engine.query("DESCRIBE_PROPERTY",
+            forcedBindings={"property_uri": PROPERTY_URI})
+        res_new_property_create = json.loads(read_all_file("res_new_property_create.json"))
+        self.assertTrue(compare_queries(query_result,res_new_property_create))
+
         # Updating property with a new writability and a new value
         p_fBindings["newWritability"] = "false"
         p_fBindings["newValue"] = NEW_PROPERTY_VALUE
         testProperty.update(p_fBindings)
         
-        with open(RES_SPARQL_NEW_PROPERTY,"r") as create:
-            jCreate = json.load(create)
-            jCreate["results"]["bindings"][0]["pWritability"]["value"] = "false"
-            jCreate["results"]["bindings"][0]["pValue"]["value"] = NEW_PROPERTY_VALUE
-            with open(RES_SPARQL_NEW_PROPERTY_UPDATE,"r") as update:
-                self.assertTrue(utils.notify_result("test_property UPDATE result check",utils.compare_queries(jCreate,json.load(update),show_diff=True)))
-
-        # Performing the query after updates, and check with the update file
-        sparql,fB = YSparql(queryProperty,external_prefixes=WotPrefs).getData(fB_values={"property_uri": PROPERTY_URI})
-        self.assertTrue(utils.query_FileCompare(self.engine,sparql=sparql,fB=fB,message="test_property UPDATE",fileAddress=RES_SPARQL_NEW_PROPERTY_UPDATE))
+        res_new_property_create["results"]["bindings"][0]["pWritability"]["value"] = "false"
+        res_new_property_create["results"]["bindings"][0]["pValue"]["value"] = NEW_PROPERTY_VALUE
+        res_new_property_update = resource_filename(__name__,"res_new_property_update.json")
+        
+        self.assertTrue(compare_queries(res_new_property_create,res_new_property_update))
+        query_result = self.engine.query("DESCRIBE_PROPERTY",
+            forcedBindings={"property_uri": PROPERTY_URI})
+        self.assertTrue(compare_queries(query_result,res_new_property_update))
         
         # Deleting the property
         testProperty.delete()
         # Query all check
         dummyThing.delete()
-        self.assertTrue(utils.query_FileCompare(self.engine,message="test_property DELETE",fileAddress=RES_SPARQL_QUERY_ALL_NEW_DATASCHEMA,show_diff=False))
-        reset_testbase(self.engine)
+        self.assertTrue(compare_queries(self.engine.query_all(),
+            resource_filename(__name__,"res_query_all_new_dataschema.json")))
         
-    def test_5(self):
+    def test_4(self):
         """
-        This function performs checks for adding, updating and removing Actions to a web thing.
-        Notice that to do so, it is required to test also DataSchema and FieldSchema updates. Those two classes
+        This function performs checks for adding, updating and removing 
+        Actions to a web thing. Notice that to do so, it is required to 
+        test also DataSchema and FieldSchema updates. Those two classes
         are not made to be removed, because they can always be used by other things. 
         
-        TODO The procedure to remove them is more complex and involves some queries before performing the delete.
+        TODO The procedure to remove them is more complex and involves 
+        some queries before performing the delete.
         
-        In case reset==True, check jsons are updated. However, the plain 'res_query_all' is not overwritten, because
-        the presence of new DataSchema and FieldSchema here requires the existance of a different file named
-        'res_query_all_new_dataschema.json'.
+        In case reset==True, check jsons are updated. However, the plain 
+        'res_query_all' is not overwritten, because the presence of new 
+        DataSchema and FieldSchema here requires the existance of a different 
+        file named 'res_query_all_new_dataschema.json'.
         
         True or False is returned for success or failure.
         """
         THING_URI = "<http://TestThing.com>"
         DS_URI_INPUT = "<http://TestThing.com/Actions/DataSchema/input>"
         DS_URI_OUTPUT = "<http://TestThing.com/Actions/DataSchema/output>"
-        print("\nTest new actions")
         
         # Adding new Action Dataschemas and its corresponding FieldSchema
         DataSchema(self.engine, { "ds_uri": DS_URI_INPUT,
@@ -244,45 +237,47 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         # Adding new Actions and then query the output
         actions = []
         for aType in list(AType):
-            actions.append(Action(self.engine,{ "td": "<http://TestTD.com>",
-                            "action": "<http://TestAction_{}.com>".format(aType.value),
-                            "newName": "TEST-ACTION-{}".format(aType.value),
-                            "ids": DS_URI_INPUT,
-                            "ods": DS_URI_OUTPUT},lambda: None,force_type=aType).post())
+            actions.append(Action(self.engine,
+                { "td": "<http://TestTD.com>",
+                "action": "<http://TestAction_{}.com>".format(aType.value.lower()),
+                "newName": "TEST-ACTION-{}".format(aType.value.lower()),
+                "ids": DS_URI_INPUT,
+                "ods": DS_URI_OUTPUT},lambda: None,force_type=aType).post())
         
-        self.assertTrue(utils.query_CompareUpdate(self.engine,
-            PATH_SPARQL_QUERY_ACTION,
-            {}, False,
-            RES_SPARQL_NEW_ACTIONS,
-            "test_actions ADD",
-            replace={"(?action_uri)": "(<http://TestAction_io.com>) (<http://TestAction_i.com>) (<http://TestAction_o.com>) (<http://TestAction_empty.com>)"},
-            prefixes=WotPrefs))
+        sparql_query = self.engine.sap.getQuery("DESCRIBE_ACTION").replace("(UNDEF)",
+            "(<http://TestAction_io.com>) (<http://TestAction_i.com>) (<http://TestAction_o.com>) (<http://TestAction_empty.com>)")
+        query_result = self.engine.sparql_query(sparql_query)
+        self.assertTrue(compare_queries(query_result,
+            resource_filename(__name__,"res_new_actions_create.json")))
+        
         # Deleting the actions
         for action in actions:
             action.delete()
         # Query all check
         dummyThing.delete()
-        self.assertTrue(utils.query_FileCompare(self.engine,message="test_actions DELETE",fileAddress=RES_SPARQL_QUERY_ALL_NEW_DS_ACTIONS))
-        reset_testbase(self.engine)
+        self.assertTrue(compare_queries(self.engine.query_all(),
+            resource_filename(__name__,"res_query_all_new_dataschema_actions.json")))
         
-    def test_6(self):
+    def test_5(self):
         """
-        This function performs checks for adding, updating and removing Events to a web thing.
-        Notice that to do so, it is required to test also DataSchema and FieldSchema updates. Those two classes
-        are not made to be removed, because they can always be used by other things. 
+        This function performs checks for adding, updating and removing 
+        Events to a web thing. Notice that to do so, it is required to test 
+        also DataSchema and FieldSchema updates. Those two classes are not 
+        made to be removed, because they can always be used by other things. 
         
-        TODO The procedure to remove them is more complex and involves some queries before performing the delete.
+        TODO The procedure to remove them is more complex and involves 
+        some queries before performing the delete.
         
-        In case reset==True, check jsons are updated. However, the plain 'res_query_all' is not overwritten, because
-        the presence of new DataSchema and FieldSchema here requires the existance of a different file named
-        'res_query_all_new_dataschema.json'.
+        In case reset==True, check jsons are updated. However, the plain 
+        'res_query_all' is not overwritten, becausen the presence of new 
+        DataSchema and FieldSchema here requires the existance of a different 
+        file named 'res_query_all_new_dataschema.json'.
         
         True or False is returned for success or failure.
         """
         THING_URI = "<http://TestThing.com>"
         DS_URI_OUTPUT = "<http://TestThing.com/Events/DataSchema/output>"
-        print("\nTest new events")
-        
+
         # Adding new Action Dataschema and its corresponding FieldSchema
         DataSchema(self.engine, { "ds_uri": DS_URI_OUTPUT,
                     "fs_uri": "xsd:integer",
@@ -297,49 +292,70 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         events = []
         for eType in list(EType):
             events.append(Event(self.engine,{ "td": "<http://TestTD.com>",
-                            "event": "<http://TestEvent_{}.com>".format(eType.value),
-                            "eName": "TEST-EVENT-{}".format(eType.value),
+                            "event": "<http://TestEvent_{}.com>".format(eType.value.lower()),
+                            "eName": "TEST-EVENT-{}".format(eType.value.lower()),
                             "ods": DS_URI_OUTPUT},force_type=eType).post())
 
-        # Querying the actions
-        self.assertTrue(utils.query_CompareUpdate(self.engine,
-            PATH_SPARQL_QUERY_EVENT,
-            {},False,
-            RES_SPARQL_NEW_EVENTS,
-            "test_events ADD",
-            replace={"(?event_uri)": "(<http://TestEvent_o.com>) (<http://TestEvent_empty.com>)"},
-            prefixes=WotPrefs))
+        # Querying the events
+        sparql_query = self.engine.sap.getQuery("DESCRIBE_EVENT").replace("(UNDEF)",
+            "(<http://TestEvent_o.com>) (<http://TestEvent_empty.com>)")
+        query_result = self.engine.sparql_query(sparql_query)
+        self.assertTrue(compare_queries(query_result,
+            resource_filename(__name__,"res_new_events_create.json")))
         
         # Deleting the events
         for event in events:
             event.delete()
         # Query all check
         dummyThing.delete()
-        self.assertTrue(utils.query_FileCompare(self.engine,message="test_events DELETE",fileAddress=RES_SPARQL_QUERY_ALL_NEW_DS_EVENTS))
-        reset_testbase(self.engine)
+        self.assertTrue(compare_queries(self.engine.query_all(),
+            resource_filename(__name__,"res_query_all_new_dataschema_events.json")))
         
-    def test_7(self):
+    def test_6(self):
         """ 
-        The procedure to test the action request/response sequence is the following.
-        Given the standard content of the RDF store, we update a new action instance. 
-        We then check that the subscription query contains all data required. 
-        We add also timestamps, that are necessary items for the following steps.
-        Outputs, if present, are checked.
+        The procedure to test the action request/response sequence is the 
+        following. Given the standard content of the RDF store, we update 
+        a new action instance. We then check that the subscription query 
+        contains all data required. We add also timestamps, that are necessary 
+        items for the following steps. Outputs, if present, are checked.
         Delete is then performed.
         
-        Consider that the update "new_empty_action_instance.sparql" is used also for output actions,
-        and that "new_i_action_instance.sparql" is used also for input-output actions.
+        Consider that the update "new_empty_action_instance.sparql" is 
+        used also for output actions, and that "new_i_action_instance.sparql" 
+        is used also for input-output actions.
         
-        The action here tested is Input-Output, which means we test all kind i-o-io actions in one.
-        We test also the empty action.
+        The action here tested is Input-Output, which means we test all 
+        kind i-o-io actions in one. We test also the empty action.
         """
+        # retrieving actions from SEPA: those are inferred
         actions = [ Action.buildFromQuery(self.engine,"<http://MyFirstWebThing.com/Action1>"),
                     Action.buildFromQuery(self.engine,"<http://MyThirdWebThing.com/Action1>")]
-
-        print("\nTest action instance")
+                    
+        # copying inferred actions, building up real ones. This is to test
+        # subscription responsiveness
+        deep_actions = [ Action.buildFromQuery(self.engine,"<http://MyFirstWebThing.com/Action1>"),
+                    Action.buildFromQuery(self.engine,"<http://MyThirdWebThing.com/Action1>")]
         
         # Adding the instances
-        for action in actions:
+        for index,action in enumerate(actions):
+            # defining the action task testing behavior
+            task_iteration = 0
+            action_type = action.type.value.lower()
+            def deep_action_task(added,removed):
+                nonlocal task_iteration
+                nonlocal action_type
+                if task_iteration == 0:
+                    self.assertFalse(added)
+                elif task_iteration == 1:
+                    self.assertTrue(compare_queries(
+                        json.loads(
+                            read_all_file(
+                                "res_new_{}_action_instance.json".format(action_type)))["results"]["bindings"],
+                        added, ignore_val=["aTS"]))
+                task_iteration += 1
+            deep_actions[index].action_task = deep_action_task
+            deep_actions[index].enable() # triggers task_iteration==0
+            
             bindings = {   "thing": action.thing,
                             "action": action.uri,
                             "newAInstance": action.uri.replace(">","/instance1>"),
@@ -347,24 +363,57 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                             "newIData": action.uri.replace(">","/instance1/InputData>"),
                             "newIValue": "This is an input string",
                             "newIDS": action.uri.replace(">","/DataSchema/input>")}
-            instance = action.newRequest(bindings)
+            confirm_iteration = 0
+            def confirm_handler(added,removed):
+                nonlocal confirm_iteration
+                if confirm_iteration == 0:
+                    self.assertFalse(added)
+                else:
+                    self.assertTrue(compare_queries(
+                        json.loads(
+                            read_all_file(
+                                "res_new_confirmation_ts.json"))["results"]["bindings"],
+                        added, ignore_val=["ts"]))
+                    self.engine.unsubscribe(subids["confirm"])
+                confirm_iteration += 1
+            complete_iteration = 0
+            def complete_handler(added,removed):
+                nonlocal complete_iteration
+                if complete_iteration == 0:
+                    self.assertFalse(added)
+                else:
+                    self.assertTrue(compare_queries(
+                        json.loads(
+                            read_all_file(
+                                "res_new_completion_ts.json"))["results"]["bindings"],
+                        added, ignore_val=["ts"]))
+                    self.engine.unsubscribe(subids["completion"])
+                complete_iteration += 1
+            # the following line triggers task_iteration==1,
+            # confirm_iteration==0, complete_iteration==0
+            print("1")
+            instance,subids = action.newRequest(bindings,confirm_handler=confirm_handler,completion_handler=complete_handler) 
             
             # Workaround for test functionality avoids isInferred exceptions
-            action.action_task = lambda a,r: None
+            # action.action_task = lambda a,r: None
 
             # Checking the instance
-            self.assertTrue(utils.query_CompareUpdate(self.engine,
-                PATH_SPARQL_QUERY_ACTION_INSTANCE,
-                bindings,
-                False,
-                RES_SPARQL_NEW_ACTION_INSTANCE_TEMPLATE.format(action.type.value),
-                "test_{}_action_instance UPDATE-SUBSCRIBE".format(action.type.value),
-                ignore=["aTS"],
-                prefixes=WotPrefs))
+            # self.assertTrue(utils.query_CompareUpdate(self.engine,
+                # PATH_SPARQL_QUERY_ACTION_INSTANCE,
+                # bindings,
+                # False,
+                # RES_SPARQL_NEW_ACTION_INSTANCE_TEMPLATE(action.type.value),
+                # "test_{}_action_instance UPDATE-SUBSCRIBE".format(action.type.value),
+                # ignore=["aTS"],
+                # prefixes=WotPrefs))
                 
             # Adding and checking Confirmation and Completion timestamps
-            self.assertTrue(add_action_instance_ts(self.engine,instance,action))
-            
+            # self.assertTrue(add_action_instance_ts(self.engine,instance,action))
+            print("2")
+            deep_actions[index].post_confirmation(instance) # triggers confirm_iteration==1
+            print("3")
+            deep_actions[index].post_completion(instance) # triggers complete_iteration==1
+            return
             # Update the instances
             bindings["newAInstance"] = action.uri.replace(">","/instance2>")
             if action.type == AType.INPUT_ACTION:
@@ -379,7 +428,7 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                 PATH_SPARQL_QUERY_ACTION_INSTANCE,
                 bindings,
                 False,
-                RES_SPARQL_NEW_ACTION_INSTANCE_UPDATE_TEMPLATE.format(action.type.value),
+                RES_SPARQL_NEW_ACTION_INSTANCE_UPDATE_TEMPLATE(action.type.value),
                 "test_{}_action_instance NEW REQUEST".format(action.type.value),
                 ignore=["aTS"],
                 prefixes=WotPrefs))
@@ -440,7 +489,7 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                 PATH_SPARQL_QUERY_EVENT_INSTANCE,
                 bindings,
                 False,
-                RES_SPARQL_NEW_EVENT_INSTANCE_TEMPLATE.format(event.type.value),
+                RES_SPARQL_NEW_EVENT_INSTANCE_TEMPLATE(event.type.value),
                 "test_{}_event_instance UPDATE-SUBSCRIBE".format(event.type.value),
                 ignore=["eTS"],
                 prefixes=WotPrefs))
@@ -457,7 +506,7 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                 PATH_SPARQL_QUERY_EVENT_INSTANCE,
                 bindings,
                 False,
-                RES_SPARQL_NEW_EVENT_INSTANCE_UPDATE_TEMPLATE.format(event.type.value),
+                RES_SPARQL_NEW_EVENT_INSTANCE_UPDATE_TEMPLATE(event.type.value),
                 "test_{}_event_instance NEW REQUEST".format(event.type.value),
                 ignore=["eTS"],
                 prefixes=WotPrefs))

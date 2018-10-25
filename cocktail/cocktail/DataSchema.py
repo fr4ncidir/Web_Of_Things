@@ -22,12 +22,6 @@
 #  
 #  
 
-from .constants import PATH_SPARQL_NEW_DATASCHEMA, PATH_SPARQL_QUERY_DATASCHEMA
-from .constants import SPARQL_PREFIXES as WotPrefs
-from .constants import PATH_SPARQL_NEW_PROPERTY
-
-import sepy.utils as utils
-from sepy.YSparqlObject import YSparqlObject as YSparql
 from sepy.tablaze import tablify
 
 import logging
@@ -51,21 +45,24 @@ class DataSchema:
         return self._bindings["ds_uri"]
 
     def post(self):
-        sparql,fB = YSparql(PATH_SPARQL_NEW_DATASCHEMA,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-        self._sepa.update(sparql,fB)
+        # sparql,fB = YSparql(PATH_SPARQL_NEW_DATASCHEMA,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
+        # self._sepa.update(sparql,fB)
+        self._sepa.update("NEW_DATASCHEMA",forcedBindings=self._bindings)
         return self
         
     @classmethod
     def getBindingList(self):
-        _,fB = YSparql(PATH_SPARQL_NEW_DATASCHEMA,external_prefixes=WotPrefs).getData(noExcept=True)
-        return fB.keys()
+        #_,fB = YSparql(PATH_SPARQL_NEW_DATASCHEMA,external_prefixes=WotPrefs).getData(noExcept=True)
+        #return fB.keys()
+        return self._sepa.sap.updates["NEW_DATASCHEMA"]["forcedBindings"].keys()
     
     @staticmethod
     def discover(sepa,ds="UNDEF",nice_output=False):
-        sparql,fB = YSparql(PATH_SPARQL_QUERY_DATASCHEMA,external_prefixes=WotPrefs).getData(fB_values={"ds_force": ds})
-        d_output = sepa.query(sparql,fB)
+        # sparql,fB = YSparql(PATH_SPARQL_QUERY_DATASCHEMA,external_prefixes=WotPrefs).getData(fB_values={"ds_force": ds})
+        # d_output = sepa.query(sparql,fB)
+        d_output = sepa.query("GET_DATASCHEMAS",forcedBindings={"ds_force": ds})
         if nice_output:
-            tablify(d_output,prefix_file=WotPrefs.split("\n"))
+            tablify(d_output,prefix_file=sepa.get_namespaces(stringList=True))
         return d_output
 
     def delete(self):

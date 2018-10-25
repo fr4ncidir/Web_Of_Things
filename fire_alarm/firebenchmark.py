@@ -95,4 +95,8 @@ if __name__ == '__main__':
     parser.add_argument("-registration_uri", default=None, help="Sepa registration uri")
     parser.add_argument("rooms",help="Number of rooms for the benchmark")
     arguments = vars(parser.parse_args())
+    if ((arguments["token_uri"] is not None) and (arguments["registration_uri"] is not None)):
+        arguments["security"] = True
+    else:
+        arguments["security"] = False
     sys.exit(main(arguments))

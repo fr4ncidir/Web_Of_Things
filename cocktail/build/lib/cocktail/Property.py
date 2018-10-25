@@ -22,15 +22,8 @@
 #  
 #  
 
-import sepy.utils as utils
-from sepy.YSparqlObject import YSparqlObject as YSparql
 from sepy.tablaze import tablify
-
-from cocktail.InteractionPattern import InteractionPattern
-
-from .constants import PATH_SPARQL_NEW_PROPERTY as newProperty
-from .constants import SPARQL_PREFIXES as WotPrefs
-from .constants import PATH_SPARQL_QUERY_PROPERTY as queryProperty
+from .InteractionPattern import InteractionPattern
 
 import logging
 
@@ -50,8 +43,9 @@ class Property(InteractionPattern):
         Posts the thing to the rdf store.
         """
         logger.info("Posting property {}: {}".format(self.name,self.uri))
-        sparql,fB = YSparql(newProperty,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-        self._sepa.update(sparql,fB)
+        # sparql,fB = YSparql(newProperty,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
+        # self._sepa.update(sparql,fB)
+        self._sepa.update("ADD_UPDATE_PROPERTY",forcedBindings=self._bindings)
         return self
         
     def update(self,bindings):
@@ -83,8 +77,9 @@ class Property(InteractionPattern):
     
     @classmethod
     def getBindingList(self):
-        _,fB = YSparql(newProperty,external_prefixes=WotPrefs).getData(noExcept=True)
-        return fB.keys()
+        # _,fB = YSparql(newProperty,external_prefixes=WotPrefs).getData(noExcept=True)
+        # return fB.keys()
+        return self._sepa.sap.updates["ADD_UPDATE_PROPERTY"]["forcedBindings"].keys()
 
     @staticmethod
     def discover(sepa,prop="UNDEF",nice_output=False):
@@ -93,10 +88,11 @@ class Property(InteractionPattern):
         'prop' by default is 'UNDEF', retrieving every property. Otherwise it will be more selective
         'nice_output' prints a nice table on console, using tablaze.
         """
-        sparql,fB = YSparql(queryProperty,external_prefixes=WotPrefs).getData(fB_values={"property_uri":prop})
-        d_output = sepa.query(sparql,fB=fB)
+        # sparql,fB = YSparql(queryProperty,external_prefixes=WotPrefs).getData(fB_values={"property_uri":prop})
+        # d_output = sepa.query(sparql,fB=fB)
+        d_output = sepa.query("DESCRIBE_PROPERTY",forcedBindings={"property_uri":prop})
         if nice_output:
-            tablify(d_output,prefix_file=WotPrefs.split("\n"))
+            tablify(d_output,prefix_file=sepa.get_namespaces(stringList=True))
         if ((prop != "UNDEF") and (len(d_output["results"]["bindings"])>1)):
             raise Exception("Property discovery gave more than one result")
         return d_output

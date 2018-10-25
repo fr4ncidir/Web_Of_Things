@@ -1,0 +1,61 @@
+host: {{ host_ip_address }}
+{% if oauth %}
+oauth:
+    enable: {{ oauth['enable_flag'] }}
+    register: {{ oauth['register_url'] }}
+    tokenRequest: {{ oauth['token_url'] }}
+{% endif %}
+sparql11protocol:
+    protocol: {{ sparql11_protocol}}
+    port: {{ sparql11_port }}
+    query:
+        path: {{ sparql11_query_path }}
+        method: {{ sparql11_query_method }}
+        format: {{ sparql11_query_format }}
+    update:
+        path: {{ sparql11_update_path }}
+        method: {{ sparql11_update_method }}
+        format: {{ sparql11_update_format }}
+sparql11seprotocol:
+    protocol: {{ sparql11se_protocol }}
+    {% if available_protocols %}
+    availableProtocols:
+        {% for ap in available_protocols %}
+        {{ ap['name'] }}: 
+            port: {{ ap['port'] }}
+            path: {{ ap['path'] }}
+        {% endfor %}
+    {% endif %}
+{% if extended %}
+extended:
+    {% for index, data in extended.items() %}
+    {{ index }}: {{ data }}
+    {% endfor %}
+{% endif %}
+{% if namespaces %}
+namespaces:
+    {% for ns,url in namespaces.items() %}
+    {{ ns }}: {{ url|e }}
+    {% endfor %}
+{% endif %}
+updates:
+    {% for id,u in updates %}
+    {{ id }}:
+        {% for index, data in u.items() %}
+        {{ index }}: {{ data }}
+        {% endfor %}
+    {% endfor %}
+    INSERT_GREETING:
+        sparql: insert data {test:Francesco test:dice 'Ciao'}
+    INSERT_VARIABLE_GREETING:
+        sparql: insert data {?nome test:dice ?qualcosa}
+        forcedBindings:
+            nome:
+                type: uri
+                value: ""
+            qualcosa:
+                type: literal
+                value: ""
+queries:
+    QUERY_GREETINGS:
+        sparql: select * where {?nome test:dice ?qualcosa}

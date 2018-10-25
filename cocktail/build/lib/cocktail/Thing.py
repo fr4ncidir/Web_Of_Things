@@ -22,18 +22,9 @@
 #  
 #  
 
-import sepy.utils as utils
-
-from .constants import SPARQL_PREFIXES as WotPrefs
-from .constants import PATH_SPARQL_NEW_THING as newThing
-from .constants import PATH_SPARQL_NEW_SUBTHING as newSubThing
-from .constants import PATH_SPARQL_DELETE_THING as delThing
-from .constants import PATH_SPARQL_QUERY_THING as queryThing
+from sepy.tablaze import tablify
 
 import logging
-
-from sepy.YSparqlObject import YSparqlObject as YSparql
-from sepy.tablaze import tablify
 
 logger = logging.getLogger("cocktail_log") 
 
@@ -57,13 +48,16 @@ class Thing:
         Posting the wot:Thing (and its connection to a superthing) with all its interaction patterns.
         Note that putting interaction patterns here is not the only way to proceed.
         """
-        sparql,fB = YSparql(newThing,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-        self._sepa.update(sparql,fB)
+        # sparql,fB = YSparql(newThing,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
+        # self._sepa.update(sparql,fB)
+        self._sepa.update("NEW_THING",forcedBindings=self._bindings)
         logger.debug("Posting thing {}: {}".format(self.name, self.uri))
         
         if self._superthing is not None:
-            sparql,fB = YSparql(newSubThing,external_prefixes=WotPrefs).getData(fB_values={"superthing": self._superthing, "subthing": self.uri})
-            self._sepa.update(sparql,fB)
+            # sparql,fB = YSparql(newSubThing,external_prefixes=WotPrefs).getData(fB_values={"superthing": self._superthing, "subthing": self.uri})
+            # self._sepa.update(sparql,fB)
+            self._sepa.update("NEW_SUBTHING",
+                forcedBindings={"superthing": self._superthing, "subthing": self.uri})
             logger.debug("Connecting superthing {} to {}".format(self._superthing, self.uri))
         for ip in interaction_patterns:
             logger.debug("Appending interaction pattern {} to {}".format(ip.uri, self.uri))
@@ -72,8 +66,9 @@ class Thing:
             
     def delete(self):
         """Deletes the thing from the rdf store"""
-        sparql,fB = YSparql(delThing,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-        self._sepa.update(sparql,fB)
+        # sparql,fB = YSparql(delThing,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
+        # self._sepa.update(sparql,fB)
+        self._sepa.update("DELETE_THING",self._bindings)
         logger.debug("Deleting "+self.uri)
         
     @staticmethod
@@ -82,10 +77,11 @@ class Thing:
         Thing discovery. It can be more selective when we use 'bindings', while 'nice_output'
         prints the results to console in a friendly manner.
         """
-        sparql,fB = YSparql(queryThing,external_prefixes=WotPrefs).getData(fB_values=bindings)
-        d_output = sepa.query(sparql,fB)
+        # sparql,fB = YSparql(queryThing,external_prefixes=WotPrefs).getData(fB_values=bindings)
+        # d_output = sepa.query(sparql,fB)
+        d_output = sepa.query("DISCOVER_THINGS",bindings)
         if nice_output:
-            tablify(d_output,prefix_file=WotPrefs.split("\n"))
+            tablify(d_output,prefix_file=sepa.get_namespaces(stringList=True))
         return d_output
         
     @property
@@ -113,5 +109,5 @@ class Thing:
         """
         Utility function to know how you have to format the bindings for the constructor.
         """
-        _,fB = YSparql(newThing,external_prefixes=WotPrefs).getData(noExcept=True)
-        return fB.keys()
+        #_,fB = YSparql(newThing,external_prefixes=WotPrefs).getData(noExcept=True)
+        return self._sepa.sap.updates["NEW_THING"]["forcedBindings"].keys()
