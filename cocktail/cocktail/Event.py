@@ -32,11 +32,13 @@ from sepy.SAPObject import uriFormat
 from enum import Enum
 import logging
 
-logger = logging.getLogger("cocktail_log") 
+logger = logging.getLogger("cocktail_log")
+
 
 class EType(Enum):
     OUTPUT_EVENT = "O"
     EMPTY_EVENT = "EMPTY"
+
 
 class Event(InteractionPattern):
     """
@@ -44,16 +46,17 @@ class Event(InteractionPattern):
     Extends InteractionPattern
     """
     
-    def __init__(self,sepa,bindings,forProperties=[],force_type=None):
+    def __init__(self, sepa, bindings, forProperties=[], force_type=None):
         """
-        Constructor of Event Item. 
+        Constructor of Event Item.
         'sepa' is the blazegraph/sepa instance.
         'bindings' is a dictionary formatted as required by the new-event yaml
-        'forProperties' is a list containing the Properties that are linked to this action
-        'force_type' is a flag which you can use to force the type of the event into O or EMPTY.
-            To do so, use the EType enum.
+        'forProperties' is a list containing the Properties that are linked
+        to this action
+        'force_type' is a flag which you can use to force the type of the
+        event into O or EMPTY. To do so, use the EType enum.
         """
-        super().__init__(sepa,bindings)
+        super().__init__(sepa, bindings)
         if ("ods" in bindings.keys()) or (force_type is EType.OUTPUT_EVENT):
             self._type = EType.OUTPUT_EVENT
         else:
@@ -62,31 +65,22 @@ class Event(InteractionPattern):
         self._observation_subid = None
         
     def post(self):
-        # sparql,fB = YSparql(PATH_SPARQL_NEW_EVENT_TEMPLATE(self._type.value),external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-        # self._sepa.update(sparql,fB)
-        self._sepa.update("ADD_{}_EVENT".format(self._type.value),forcedBindings=self._bindings)
-        logger.debug("Posting event {}: {}".format(self.name,self.uri))
+        self._sepa.update("ADD_{}_EVENT".format(self._type.value),
+                          forcedBindings=self._bindings)
+        logger.debug("Posting event {}: {}".format(self.name, self.uri))
         
         if self._forProperties:
-            # sparql,fB = YSparql(PATH_SPARQL_ADD_FORPROPERTY,external_prefixes=WotPrefs).getData(fB_values={"ip":self._bindings["event"]},noExcept=True)
-            # properties = []
-            # for prop in self._forProperties:
-                # properties.append(prop.bindings["property"])
-                # logger.debug("Appending forProperty {} to {}".format(prop.bindings["property"], self.uri))
-            # sparql = sparql.replace("?ip wot:forProperty ?property","?ip wot:forProperty {}".format(", ".join(properties)))
-            # sparql = sparql.replace("?property a wot:Property"," a wotProperty. ".join(properties)+" a wot:Property")
-            # self._sepa.update(sparql,fB)
-            self._sepa.sparql_update(forPropertySparqlBuilder(self._sepa.sap,self.uri,self._forProperties))
+            self._sepa.sparql_update(forPropertySparqlBuilder(
+                self._sepa.sap, self.uri, self._forProperties))
         return self
         
-    def notify(self,bindings):
+    def notify(self, bindings):
         """
-        Posts to the rdf store a notification, whose data in 'bindings' is formatted as in the new-event-instance yaml.
+        Posts to the rdf store a notification, whose data in 'bindings'
+        is formatted as in the new-event-instance yaml.
         """
-        # logger.info("Notifying new event instance: "+bindings["newEInstance"])
-        # sparql,fB = YSparql(PATH_SPARQL_NEW_EVENT_INSTANCE_TEMPLATE(self._type.value),external_prefixes=WotPrefs).getData(fB_values=bindings)
-        # self._sepa.update(sparql,fB)
-        self._sepa.update("NEW_{}_EVENT_INSTANCE".format(self._type.value),forcedBindings=bindings)
+        self._sepa.update("NEW_{}_EVENT_INSTANCE".format(self._type.value),
+                          forcedBindings=bindings)
         return bindings["newEInstance"]
     
     @property
@@ -105,73 +99,74 @@ class Event(InteractionPattern):
         return self._type
     
     @classmethod
-    def getBindingList(self,event_type):
+    def getBindingList(self, event_type):
         """
-        Utility function to know how you have to format the bindings for the constructor.
+        Utility function to know how you have to format the bindings for
+        the constructor.
         """
         if event_type not in EType:
             raise ValueError
-        # _,fB = YSparql(PATH_SPARQL_NEW_EVENT_TEMPLATE(event_type.value),external_prefixes=WotPrefs).getData(noExcept=True)
-        # return fB.keys()
         return self._sepa.sap.updates["ADD_{}_EVENT".format(event_type.value)]["forcedBindings"].keys()
         
-    def deleteInstance(self,instance):
+    def deleteInstance(self, instance):
         """
         Deletes a specific instance from the rdf store
         """
         super().deleteInstance(instance)
         logger.warning("Deleting Event instance "+instance)
-        #sparql,fB = YSparql(PATH_SPARQL_DELETE_EVENT_INSTANCE,external_prefixes=WotPrefs).getData(fB_values={"eInstance": instance})
-        self._sepa.update("DELETE_EVENT_INSTANCE",forcedBindings={"eInstance": instance})
+        self._sepa.update("DELETE_EVENT_INSTANCE",
+                          forcedBindings={"eInstance": instance})
         
     @staticmethod
-    def discover(sepa,event="UNDEF",nice_output=False):
+    def discover(sepa, event="UNDEF", nice_output=False):
         """
         Static method, used to discover events in the rdf store.
-        'event' by default is 'UNDEF', retrieving every event available. Otherwise it will be more selective
+        'event' by default is 'UNDEF', retrieving every event available.
+        Otherwise it will be more selective
         'nice_output' prints a nice table on console, using tablaze.
         """
-        # sparql,fB = YSparql(PATH_SPARQL_QUERY_EVENT,external_prefixes=WotPrefs).getData(fB_values={"event_uri":event})
-        # d_output = sepa.query(sparql,fB=fB)
-        d_output = sepa.query("DESCRIBE_EVENT",forcedBindings={"event_uri":event})
+        d_output = sepa.query("DESCRIBE_EVENT",
+                              forcedBindings={"event_uri": event})
         if nice_output:
-            tablify(d_output,prefix_file=sepa.get_namespaces(stringList=True))
-        if ((event != "UNDEF") and (len(d_output["results"]["bindings"])>1)):
+            tablify(d_output, prefix_file=sepa.get_namespaces(stringList=True))
+        if (event != "UNDEF") and (len(d_output["results"]["bindings"]) > 1):
             raise Exception("Event discovery gave more than one result")
         return d_output
         
     @staticmethod
-    def buildFromQuery(sepa,eventURI):
+    def buildFromQuery(sepa, eventURI):
         """
-        Static method to build a local copy of an event by querying the rdf store.
+        Static method to build a local copy of an event by querying the
+        rdf store.
         'eventURI' is the uri of the event needed.
         """
-        query_event = Event.discover(sepa,event=eventURI)
-        query_ip = InteractionPattern.discover(sepa,ip_type="wot:Event",nice_output=False)
+        query_event = Event.discover(sepa, event=eventURI)
+        query_ip = InteractionPattern.discover(
+            sepa, ip_type="wot:Event", nice_output=False)
         for binding in query_ip["results"]["bindings"]:
-            if binding["ipattern"]["value"] == eventURI.replace("<","").replace(">",""):
+            if binding["ipattern"]["value"] == eventURI.replace("<", "").replace(">", ""):
                 td = uriFormat(binding["td"]["value"])
         eBinding = query_event["results"]["bindings"][0]
-        out_bindings = { "td": td,
+        out_bindings = {"td": td,
                         "event": uriFormat(eBinding["event"]["value"]),
                         "eName": eBinding["eName"]["value"]}
         if "oDS" in eBinding.keys():
             out_bindings["ods"] = uriFormat(eBinding["oDS"]["value"])
-        query_thing = Thing.discover(sepa,bindings={"td_uri": td})
+        query_thing = Thing.discover(sepa, bindings={"td_uri": td})
         out_bindings["thing"] = uriFormat(query_thing["results"]["bindings"][0]["thing"]["value"])
-        return Event(sepa,out_bindings)
+        return Event(sepa, out_bindings)
     
-    def observe(self,handler):
+    def observe(self, handler):
         """
         Subscribes to event notifications coming from eventURI.
         'handler' deals with the task to be performed in such situation.
         """
         if self._observation_subid is None:
-            # sparql,fB = YSparql(PATH_SPARQL_QUERY_EVENT_INSTANCE,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-            # self._observation_subid = self._sepa.subscribe(sparql,fB=fB,alias=self.uri,handler=handler)
-            self._observation_subid = self._sepa.subscribe("SUBSCRIBE_EVENT_INSTANCE",
-                self.uri, forcedBindings=self._bindings, handler=handler)
-            logger.info("Started observation of {}: id-{}".format(self.uri,self._observation_subid))
+            self._observation_subid = self._sepa.subscribe(
+                "SUBSCRIBE_EVENT_INSTANCE", self.uri, 
+                forcedBindings=self._bindings, handler=handler)
+            logger.info("Started observation of {}: id-{}".format(
+                self.uri, self._observation_subid))
         else:
             logger.info("{} already observed".format(self.uri))
         
@@ -180,7 +175,8 @@ class Event(InteractionPattern):
         No more notifications will be received of the event.
         """
         if self._observation_subid is not None:
-            logger.info("Stopped observation of {}: id-{}".format(self.uri,self._observation_subid))
+            logger.info("Stopped observation of {}: id-{}".format(
+                self.uri, self._observation_subid))
             self._sepa.unsubscribe(self._observation_subid)
             self._observation_subid = None
         else:
