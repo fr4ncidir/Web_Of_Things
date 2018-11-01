@@ -36,14 +36,16 @@ import json
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
 logger = logging.getLogger("cocktailLogger")
 
-COCKTAIL_NAMESPACES = { "xsd": "http://www.w3.org/2001/XMLSchema#",
-                        "owl": "http://www.w3.org/2002/07/owl#",
-                        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-                        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-                        "dul": "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
-                        "wot": "http://wot.arces.unibo.it/ontology/web_of_things#"}
-    
-def sparqlFolderToSap(queryfolder,file_filter=None):
+COCKTAIL_NAMESPACES = {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "dul": "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
+    "wot": "http://wot.arces.unibo.it/ontology/web_of_things#"}
+
+
+def sparqlFolderToSap(queryfolder, file_filter=None):
     """
     This function explores 'queryfolder' for .sparql files, loads them as
     yaml dictionaries, and returns the full dictionary.
@@ -55,16 +57,16 @@ def sparqlFolderToSap(queryfolder,file_filter=None):
         if (file_filter == item) or (file_filter is None):
             filepath = queryfolder+"/"+item
             if (isfile(filepath) and (splitext(item)[1] == ".sparql")):
-                with open(filepath,"r") as csa:
+                with open(filepath, "r") as csa:
                     y = yaml.load(csa)
                 sapDict.update(y)
             if file_filter == item:
                 break
     return sapDict
 
-def generate_cocktail_sap(destination,jinjaTemplate=YsapTemplate):
+
+def generate_cocktail_sap(destination, jinjaTemplate=YsapTemplate):
     nested_dict = lambda: defaultdict(nested_dict)
-    
     sparql11 = nested_dict()
     sparql11["protocol"] = "http"
     sparql11["port"] = 8000

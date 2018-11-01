@@ -28,6 +28,8 @@ from sepy.SEPA import SEPA
 from sepy.SAPObject import SAPObject
 from cocktail import __name__ as cName
 
+from os.path import isfile, splitext
+
 import sys
 import argparse
 import logging
@@ -50,10 +52,12 @@ def main(args):
     logger.info("Setting up initial knowledge base...")
     setUp(engine)
     
+    # test_0
     target = resource_filename(__name__,"res_query_all.json")
     logger.info("Rebuilding {}".format(target))
     engine.query_all(destination=target)
     
+    # test_1
     dir_path = resource_filename(cName,"queries")
     for fileName in listdir(dir_path):
         filePath = dir_path + "/" + fileName
@@ -62,6 +66,18 @@ def main(args):
             target = resource_filename(__name__,splitext("res_"+fileName)[0]+".json")
             logger.info("Rebuilding {}".format(target))
             self.engine.query(sapKey,destination=target)
+    
+    # test_2
+    target = resource_filename(__name__,"res_new_thing.json")
+    logger.info("Rebuilding {}".format(target))
+    SUPERTHING = "<http://MyFirstWebThing.com>"
+    THING_URI = "<http://TestThing.com>"
+    query = self.engine.sap.getQuery("DISCOVER_THINGS").replace("(UNDEF UNDEF UNDEF)",
+            "({} UNDEF UNDEF) ({} UNDEF UNDEF)".format(THING_URI,SUPERTHING))
+    engine.sparql_query(query,destination=target)
+    
+    # test_3
+    
     
     return 0
 
