@@ -27,14 +27,15 @@ from sepy.tablaze import tablify
 
 import logging
 
-logger = logging.getLogger("cocktail_log") 
+logger = logging.getLogger("cocktail_log")
+
 
 class InteractionPattern:
     """
     Interface implementing the wot:InteractionPattern
     """
     
-    def __init__(self,sepa,bindings):
+    def __init__(self, sepa, bindings):
         self._sepa = sepa
         self._bindings = bindings
 
@@ -51,10 +52,10 @@ class InteractionPattern:
         return self._bindings["thing"] if "thing" in self._bindings.keys() else None    
     
     @thing.setter
-    def thing(self,thingURI):
+    def thing(self, thingURI):
         self._bindings["thing"] = thingURI
     
-    def setSepa(self,new_sepa):
+    def setSepa(self, new_sepa):
         self._sepa = new_sepa
         
     def delete(self):
@@ -69,9 +70,8 @@ class InteractionPattern:
             tag = "action"
         else:
             raise ValueError("Bad bindings!")
-        # sparql,fB = YSparql(delIP,external_prefixes=WotPrefs).getData(fB_values={"ip": self._bindings[tag]})
-        # self._sepa.update(sparql,fB)
-        self._sepa.update("DELETE_INTERACTION_PATTERN",forcedBindings={"ip": self._bindings[tag]})
+        self._sepa.update("DELETE_INTERACTION_PATTERN",
+                          forcedBindings={"ip": self._bindings[tag]})
         
     @abstractmethod
     def post(self):
@@ -84,18 +84,18 @@ class InteractionPattern:
     
     @staticmethod
     @abstractmethod
-    def discover(sepa,td_uri="UNDEF",ip_type="UNDEF",nice_output=False):
+    def discover(sepa, td_uri="UNDEF", ip_type="UNDEF", nice_output=False):
         """
-        Generic InteractionPattern discovery. Can be more selective by giving 
-        'td_uri' and 'ip_type' params. 
+        Generic InteractionPattern discovery. Can be more selective by giving
+        'td_uri' and 'ip_type' params.
         'nice_output' prints to console a table with the result.
         """
-        # sparql,fB = YSparql(queryIP,external_prefixes=WotPrefs).getData(fB_values={"td_uri": td_uri, "ipattern_type_specific": ip_type})
-        # d_output = sepa.query(sparql,fB)
-        d_output = sepa.query("DISCOVER_INTERACTION_PATTERNS",forcedBindings={"td_uri": td_uri, "ipattern_type_specific": ip_type})
+        d_output = sepa.query(
+            "DISCOVER_INTERACTION_PATTERNS",
+            forcedBindings={"td_uri": td_uri, "ipattern_type_specific": ip_type})
         if nice_output:
-            tablify(d_output,prefix_file=sepa.get_namespaces(stringList=True))
+            tablify(d_output, prefix_file=sepa.get_namespaces(stringList=True))
         return d_output
         
-    def deleteInstance(self,instance):
+    def deleteInstance(self, instance):
         pass
