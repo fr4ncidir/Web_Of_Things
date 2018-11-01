@@ -26,15 +26,16 @@ from sepy.tablaze import tablify
 
 import logging
 
-logger = logging.getLogger("cocktail_log") 
+logger = logging.getLogger("cocktail_log")
+
 
 class Thing:
     """
     wot:Thing python implementation
     """
-    def __init__(self,sepa,bindings,superthing=None):
+    def __init__(self, sepa, bindings, superthing=None):
         """
-        Constructor of Thing Item. 
+        Constructor of Thing Item.
         'sepa' is the blazegraph/sepa instance.
         'bindings' is a dictionary formatted as required by the new-action yaml
         'superthing' is the uri of the superthing that may be required
@@ -43,21 +44,19 @@ class Thing:
         self._sepa = sepa
         self._superthing = superthing
         
-    def post(self,interaction_patterns=[]):
+    def post(self, interaction_patterns=[]):
         """
-        Posting the wot:Thing (and its connection to a superthing) with all its interaction patterns.
-        Note that putting interaction patterns here is not the only way to proceed.
+        Posting the wot:Thing (and its connection to a superthing) with
+        all its interaction patterns. Note that putting interaction patterns
+        here is *not* the only way to proceed.
         """
-        # sparql,fB = YSparql(newThing,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-        # self._sepa.update(sparql,fB)
-        self._sepa.update("NEW_THING",forcedBindings=self._bindings)
+        self._sepa.update("NEW_THING", forcedBindings=self._bindings)
         logger.debug("Posting thing {}: {}".format(self.name, self.uri))
         
         if self._superthing is not None:
-            # sparql,fB = YSparql(newSubThing,external_prefixes=WotPrefs).getData(fB_values={"superthing": self._superthing, "subthing": self.uri})
-            # self._sepa.update(sparql,fB)
             self._sepa.update("NEW_SUBTHING",
-                forcedBindings={"superthing": self._superthing, "subthing": self.uri})
+                              forcedBindings={"superthing": self._superthing,
+                                              "subthing": self.uri})
             logger.debug("Connecting superthing {} to {}".format(self._superthing, self.uri))
         for ip in interaction_patterns:
             logger.debug("Appending interaction pattern {} to {}".format(ip.uri, self.uri))
@@ -66,22 +65,19 @@ class Thing:
             
     def delete(self):
         """Deletes the thing from the rdf store"""
-        # sparql,fB = YSparql(delThing,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-        # self._sepa.update(sparql,fB)
-        self._sepa.update("DELETE_THING",self._bindings)
+        self._sepa.update("DELETE_THING", self._bindings)
         logger.debug("Deleting "+self.uri)
         
     @staticmethod
-    def discover(sepa,bindings={},nice_output=False):
+    def discover(sepa, bindings={}, nice_output=False):
         """
-        Thing discovery. It can be more selective when we use 'bindings', while 'nice_output'
-        prints the results to console in a friendly manner.
+        Thing discovery. It can be more selective when we use 'bindings',
+        while 'nice_output' prints the results to console in a friendly
+        manner.
         """
-        # sparql,fB = YSparql(queryThing,external_prefixes=WotPrefs).getData(fB_values=bindings)
-        # d_output = sepa.query(sparql,fB)
-        d_output = sepa.query("DISCOVER_THINGS",bindings)
+        d_output = sepa.query("DISCOVER_THINGS", bindings)
         if nice_output:
-            tablify(d_output,prefix_file=sepa.get_namespaces(stringList=True))
+            tablify(d_output, prefix_file=sepa.get_namespaces(stringList=True))
         return d_output
         
     @property
@@ -107,7 +103,7 @@ class Thing:
     @classmethod
     def getBindingList(self):
         """
-        Utility function to know how you have to format the bindings for the constructor.
+        Utility function to know how you have to format the bindings for
+        the constructor.
         """
-        #_,fB = YSparql(newThing,external_prefixes=WotPrefs).getData(noExcept=True)
         return self._sepa.sap.updates["NEW_THING"]["forcedBindings"].keys()
