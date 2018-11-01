@@ -26,13 +26,14 @@ from sepy.tablaze import tablify
 
 import logging
 
-logger = logging.getLogger("cocktail_log") 
+logger = logging.getLogger("cocktail_log")
+
 
 class DataSchema:
     """
     wot:DataSchema python implementation
     """
-    def __init__(self,sepa,bindings):
+    def __init__(self, sepa, bindings):
         self._sepa = sepa
         self._bindings = bindings
         
@@ -45,24 +46,26 @@ class DataSchema:
         return self._bindings["ds_uri"]
 
     def post(self):
-        # sparql,fB = YSparql(PATH_SPARQL_NEW_DATASCHEMA,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-        # self._sepa.update(sparql,fB)
-        self._sepa.update("NEW_DATASCHEMA",forcedBindings=self._bindings)
+        """
+        Post to the SEPA a new dataschema
+        """
+        self._sepa.update("NEW_DATASCHEMA", forcedBindings=self._bindings)
         return self
         
     @classmethod
     def getBindingList(self):
-        #_,fB = YSparql(PATH_SPARQL_NEW_DATASCHEMA,external_prefixes=WotPrefs).getData(noExcept=True)
-        #return fB.keys()
         return self._sepa.sap.updates["NEW_DATASCHEMA"]["forcedBindings"].keys()
     
     @staticmethod
-    def discover(sepa,ds="UNDEF",nice_output=False):
-        # sparql,fB = YSparql(PATH_SPARQL_QUERY_DATASCHEMA,external_prefixes=WotPrefs).getData(fB_values={"ds_force": ds})
-        # d_output = sepa.query(sparql,fB)
-        d_output = sepa.query("GET_DATASCHEMAS",forcedBindings={"ds_force": ds})
+    def discover(sepa, ds="UNDEF", nice_output=False):
+        """
+        Discovers dataschemas in the knowedge base. Can be more selective
+        by defining 'ds' field, and print nice output setting to True the
+        'nice_output' flag.
+        """
+        d_output = sepa.query("GET_DATASCHEMAS", forcedBindings={"ds_force": ds})
         if nice_output:
-            tablify(d_output,prefix_file=sepa.get_namespaces(stringList=True))
+            tablify(d_output, prefix_file=sepa.get_namespaces(stringList=True))
         return d_output
 
     def delete(self):
