@@ -26,16 +26,58 @@ from pkg_resources import resource_filename
 
 from sepy.SEPA import SEPA
 from sepy.SAPObject import SAPObject
+from cocktail import __name__ as cName
+
+from os.path import isfile, splitext
 
 import sys
 import argparse
+import logging
+
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
+logger = logging.getLogger("cocktailLogger")
+
+def setUp(engine):
+    engine.clear()
+    engine.sparql_update(read_all_file("insert_thing_1.sparql"))
+    engine.sparql_update(read_all_file("insert_thing_2.sparql"))
+    engine.sparql_update(read_all_file("insert_thing_3.sparql"))
 
 def main(args):
+    logger.info("Setting up SAP objects and SEPA engine object...")
     sap_file = generate_cocktail_sap(None)
     ysap = SAPObject(yaml.load(sap_file))
     engine = SEPA(sapObject=self.ysap,logLevel=logging.INFO)
     
-    engine.query_all(destination=resource_filename(__name__,"res_query_all.json"))
+    logger.info("Setting up initial knowledge base...")
+    setUp(engine)
+    
+    # test_0
+    target = resource_filename(__name__,"res_query_all.json")
+    logger.info("Rebuilding {}".format(target))
+    engine.query_all(destination=target)
+    
+    # test_1
+    dir_path = resource_filename(cName,"queries")
+    for fileName in listdir(dir_path):
+        filePath = dir_path + "/" + fileName
+        if (isfile(filePath) and (splitext(filePath)[1] == ".sparql")):
+            sapKey = list(sparqlFolderToSap(dir_path,file_filter=fileName).keys())[0]
+            target = resource_filename(__name__,splitext("res_"+fileName)[0]+".json")
+            logger.info("Rebuilding {}".format(target))
+            self.engine.query(sapKey,destination=target)
+    
+    # test_2
+    target = resource_filename(__name__,"res_new_thing.json")
+    logger.info("Rebuilding {}".format(target))
+    SUPERTHING = "<http://MyFirstWebThing.com>"
+    THING_URI = "<http://TestThing.com>"
+    query = self.engine.sap.getQuery("DISCOVER_THINGS").replace("(UNDEF UNDEF UNDEF)",
+            "({} UNDEF UNDEF) ({} UNDEF UNDEF)".format(THING_URI,SUPERTHING))
+    engine.sparql_query(query,destination=target)
+    
+    # test_3
+    
     
     return 0
 

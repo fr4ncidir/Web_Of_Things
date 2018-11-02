@@ -454,13 +454,13 @@ class TestCase2_QueryUpdate(unittest.TestCase):
             # Adding and checking Confirmation and Completion timestamps
             actions_copy[index].post_confirmation(instance)  # triggers confirm_iteration==1
             actions_copy[index].post_completion(instance)  # triggers complete_iteration==1
-            if action.type == AType.INPUT_ACTION:
+            if action.type == AType.IO_ACTION or action.type == AType.OUTPUT_ACTION:
                 # Post output
                 actions_copy[index].post_output(
                     {"instance": instance,
-                     "oData": action.uri.replace(">", "/instance2/OutputData"),
+                     "oData": action.uri.replace(">", "/instance2/OutputData>"),
                      "oValue": "my output value",
-                     "oDS": action.uri.replace(">", "/DataSchema/output")})
+                     "oDS": action.uri.replace(">", "/DataSchema/output>")})
             # Remove instances and outputs
             actions_copy[index].disable()
             actions_copy[index].deleteInstance(instance)

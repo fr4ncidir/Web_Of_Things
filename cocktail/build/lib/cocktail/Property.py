@@ -27,7 +27,8 @@ from .InteractionPattern import InteractionPattern
 
 import logging
 
-logger = logging.getLogger("cocktail_log") 
+logger = logging.getLogger("cocktail_log")
+
 
 class Property(InteractionPattern):
     """
@@ -35,20 +36,18 @@ class Property(InteractionPattern):
     Extends InteractionPattern
     """
     
-    def __init__(self,sepa,bindings):
-        super().__init__(sepa,bindings)
+    def __init__(self, sepa, bindings):
+        super().__init__(sepa, bindings)
         
     def post(self):
         """
         Posts the thing to the rdf store.
         """
-        logger.info("Posting property {}: {}".format(self.name,self.uri))
-        # sparql,fB = YSparql(newProperty,external_prefixes=WotPrefs).getData(fB_values=self._bindings)
-        # self._sepa.update(sparql,fB)
-        self._sepa.update("ADD_UPDATE_PROPERTY",forcedBindings=self._bindings)
+        logger.info("Posting property {}: {}".format(self.name, self.uri))
+        self._sepa.update("ADD_UPDATE_PROPERTY", forcedBindings=self._bindings)
         return self
         
-    def update(self,bindings):
+    def update(self, bindings):
         """
         Updates the thing already present in the rdf store.
         """
@@ -77,22 +76,20 @@ class Property(InteractionPattern):
     
     @classmethod
     def getBindingList(self):
-        # _,fB = YSparql(newProperty,external_prefixes=WotPrefs).getData(noExcept=True)
-        # return fB.keys()
         return self._sepa.sap.updates["ADD_UPDATE_PROPERTY"]["forcedBindings"].keys()
 
     @staticmethod
-    def discover(sepa,prop="UNDEF",nice_output=False):
+    def discover(sepa, prop="UNDEF", nice_output=False):
         """
         Static method, used to discover properties in the rdf store.
-        'prop' by default is 'UNDEF', retrieving every property. Otherwise it will be more selective
+        'prop' by default is 'UNDEF', retrieving every property. Otherwise
+        it will be more selective.
         'nice_output' prints a nice table on console, using tablaze.
         """
-        # sparql,fB = YSparql(queryProperty,external_prefixes=WotPrefs).getData(fB_values={"property_uri":prop})
-        # d_output = sepa.query(sparql,fB=fB)
-        d_output = sepa.query("DESCRIBE_PROPERTY",forcedBindings={"property_uri":prop})
+        d_output = sepa.query(
+            "DESCRIBE_PROPERTY", forcedBindings={"property_uri": prop})
         if nice_output:
-            tablify(d_output,prefix_file=sepa.get_namespaces(stringList=True))
-        if ((prop != "UNDEF") and (len(d_output["results"]["bindings"])>1)):
+            tablify(d_output, prefix_file=sepa.get_namespaces(stringList=True))
+        if (prop != "UNDEF") and (len(d_output["results"]["bindings"]) > 1):
             raise Exception("Property discovery gave more than one result")
         return d_output
