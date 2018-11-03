@@ -61,7 +61,7 @@ def switch_handler(added_bindings, result_file, ignore=[]):
         full_added["results"]["bindings"] = added_bindings
         return compare_queries(
             resource_filename(__name__, result_file),
-            full_added, ignore_val=ignore, strictVars=False)
+            full_added, ignore_val=ignore, strictVars=False, show_diff=True)
 
 
 class TestCase2_QueryUpdate(unittest.TestCase):
@@ -127,7 +127,8 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         query_result = self.engine.sparql_query(sparql_query)
         self.assertTrue(compare_queries(
             query_result,
-            resource_filename(__name__, "res_new_thing.json")))
+            resource_filename(__name__, "res_new_thing.json"),
+            show_diff=True))
 
         # Passing through this point also in reset case allows not to
         # refresh the RDF store into the following test.
@@ -207,11 +208,12 @@ class TestCase2_QueryUpdate(unittest.TestCase):
             __name__, "res_new_property_update.json")
 
         self.assertTrue(compare_queries(
-            res_new_property_create, res_new_property_update))
+            res_new_property_create, res_new_property_update, show_diff=True))
         query_result = self.engine.query(
             "DESCRIBE_PROPERTY",
             forcedBindings={"property_uri": PROPERTY_URI})
-        self.assertTrue(compare_queries(query_result, res_new_property_update))
+        self.assertTrue(compare_queries(
+            query_result, res_new_property_update, show_diff=True))
 
         # Deleting the property
         testProperty.delete()
@@ -219,7 +221,8 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         dummyThing.delete()
         self.assertTrue(compare_queries(
             self.engine.query_all(),
-            resource_filename(__name__, "res_query_all_new_dataschema.json")))
+            resource_filename(__name__, "res_query_all_new_dataschema.json"),
+            show_diff=True))
 
     def test_4(self):
         """
@@ -278,7 +281,8 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         query_result = self.engine.sparql_query(sparql_query)
         self.assertTrue(compare_queries(
             query_result,
-            resource_filename(__name__, "res_new_actions_create.json")))
+            resource_filename(__name__, "res_new_actions_create.json"),
+            show_diff=True))
 
         # Deleting the actions
         for action in actions:
@@ -288,7 +292,8 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         self.assertTrue(compare_queries(
             self.engine.query_all(),
             resource_filename(
-                __name__, "res_query_all_new_dataschema_actions.json")))
+                __name__, "res_query_all_new_dataschema_actions.json"),
+            show_diff=True))
 
     def test_5(self):
         """
@@ -349,7 +354,8 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         self.assertTrue(compare_queries(
             self.engine.query_all(),
             resource_filename(
-                __name__, "res_query_all_new_dataschema_events.json")))
+                __name__, "res_query_all_new_dataschema_events.json"),
+            show_diff=True))
 
     def test_6(self):
         """

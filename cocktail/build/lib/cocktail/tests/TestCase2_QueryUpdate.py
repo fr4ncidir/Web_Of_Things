@@ -346,10 +346,11 @@ class TestCase2_QueryUpdate(unittest.TestCase):
             event.delete()
         # Query all check
         dummyThing.delete()
+        print(self.engine.query_all())
         self.assertTrue(compare_queries(
             self.engine.query_all(),
             resource_filename(
-                __name__, "res_query_all_new_dataschema_events.json")))
+                __name__, "res_query_all_new_dataschema_events.json"),show_diff=True))
 
     def test_6(self):
         """
@@ -458,9 +459,9 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                 # Post output
                 actions_copy[index].post_output(
                     {"instance": instance,
-                     "oData": action.uri.replace(">", "/instance2/OutputData"),
+                     "oData": action.uri.replace(">", "/instance2/OutputData>"),
                      "oValue": "my output value",
-                     "oDS": action.uri.replace(">", "/DataSchema/output")})
+                     "oDS": action.uri.replace(">", "/DataSchema/output>")})
             # Remove instances and outputs
             actions_copy[index].disable()
             actions_copy[index].deleteInstance(instance)

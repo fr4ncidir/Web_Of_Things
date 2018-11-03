@@ -33,7 +33,7 @@ import logging
 import yaml
 import json
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.WARNING)
 logger = logging.getLogger("cocktailLogger")
 
 COCKTAIL_NAMESPACES = {
@@ -160,9 +160,21 @@ def diff_JsonQuery(jA, jB, ignore_val=[], show_diff=False, log_message=""):
         jdiff = json.loads('{}')
         jdiff["head"] = {"vars": jA["head"]["vars"]}
         jdiff["results"] = {"bindings": diff}
-        logger.info("{} Differences".format(log_message))
-        print(tablify(jdiff))
+        logger.warning("{} Differences:\n{}".format(
+            log_message, tablify(jdiff, destination=None)))
     return result
+
+
+def load_json(j):
+    try:
+        with open(j, "r") as fA:
+            output = json.load(fA)
+    except TypeError:
+        try:
+            output = json.loads(j)
+        except TypeError:
+            output = j
+    return output
 
 
 def compare_queries(i_jA, i_jB, show_diff=False, ignore_val=[], strictVars=True):
@@ -181,20 +193,8 @@ def compare_queries(i_jA, i_jB, show_diff=False, ignore_val=[], strictVars=True)
     notifies a warning.
     """
     # Dealing with paths vs json objects as arguments
-    if isinstance(i_jA, str) and isfile(i_jA):
-        with open(i_jA, "r") as fA:
-            jA = json.load(fA)
-    elif isinstance(i_jA, dict):
-        jA = i_jA
-    else:
-        jA = json.loads(i_jA)
-    if isinstance(i_jB, str) and isfile(str(i_jB)):
-        with open(i_jB, "r") as fB:
-            jB = json.load(fB)
-    elif isinstance(i_jB, dict):
-        jB = i_jB
-    else:
-        jB = json.loads(i_jB)
+    jA = load_json(i_jA)
+    jB = load_json(i_jB)
         
     # Checking if every variable in jA is also present in jB and vice versa
     setVarA = set(jA["head"]["vars"])
