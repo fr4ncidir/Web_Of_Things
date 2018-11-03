@@ -1,5 +1,4 @@
 cocktail/build
 cocktail/dist
-coctail/cocktail/__pycache__
-cocktail/cocktail/tests/__pycache__
-cocktail/cocktail/*.pyc
+__pycache__/
+*.pyc
