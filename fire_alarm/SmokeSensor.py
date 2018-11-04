@@ -22,10 +22,30 @@
 #  
 #  
 
+from cocktail.Thing import Thing
+from cocktail.Event import Event
+from sepy.SAPObject import expand_prefixed_uri as epu
 
-def main(args):
-    return 0
 
-if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
+class SmokeSensor:
+    def __init__(self, engine, thingUri, thingName, thingTD, dataschema):
+        nss = engine.sap.get_namespaces()
+        self.webThing = Thing(
+            engine, {"thing": epu(thingUri, nss),
+                     "newName": thingName,
+                     "newTD": epu(thingTD, nss)}).post()
+        self.webThingEvent = Event(
+            engine, {"td": self.webThing.td,
+                     "event": epu(thingUri+"/smokeEvent", nss),
+                     "eName": self.webThing.name+"_event",
+                     "ods": dataschema["boolean"]}).post()
+                     
+    def start(self):
+        
+        def smokeSensorHandler(added, removed):
+            pass
+        
+        self.webThingEvent.observe(smokeSensorHandler)
+    
+    def stop(self):
+        self.webThingEvent.stop_observing()

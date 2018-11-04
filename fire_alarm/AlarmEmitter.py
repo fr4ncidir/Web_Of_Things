@@ -23,9 +23,44 @@
 #  
 
 
-def main(args):
-    return 0
+from cocktail.Thing import Thing
+from cocktail.Action import Action
+from sepy.SAPObject import expand_prefixed_uri as epu
 
-if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
+
+class AlarmEmitter:
+    def __init__(self, engine, thingUri, thingName, thingTD, dataschema):
+        nss = engine.sap.get_namespaces()
+        self.webThing = Thing(
+            engine, {"thing": epu(thingUri, nss),
+                     "newName": thingName,
+                     "newTD": epu(thingTD, nss)}).post()
+                     
+        self.startAction = Action(
+            engine, {"td": self.webThing.td,
+                     "action": epu(thingUri+"/start", nss),
+                     "newName": self.webThing.name+"_soundAlarmStart",
+                     "ids": dataschema["double"]},
+            lambda a, r: None).post()
+        self.stopAction = Action(
+            engine, {"td": self.webThing.td,
+                     "action": epu(thingUri+"/stop", nss),
+                     "newName": self.webThing.name+"_soundAlarmStop"},
+            lambda a, r: None).post()
+                     
+    def enable(self):
+        
+        def startAlarm(added, removed):
+            pass
+        
+        def stopAlarm(added, removed):
+            pass
+
+        self.startAction.action_task = startAlarm
+        self.stopAction.action_task = stopAlarm
+        self.startAction.enable()
+        self.stopAction.enable()
+        
+    def disable(self):
+        self.startAction.disable()
+        self.stopAction.disable()

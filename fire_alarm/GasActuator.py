@@ -22,10 +22,33 @@
 #  
 #  
 
+from cocktail.Thing import Thing
+from cocktail.Action import Action
+from sepy.SAPObject import expand_prefixed_uri as epu
 
-def main(args):
-    return 0
 
-if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
+class GasActuator:
+    def __init__(self, engine, thingUri, thingName, thingTD, dataschema):
+        nss = engine.sap.get_namespaces()
+        self.webThing = Thing(
+            engine, {"thing": epu(thingUri, nss),
+                     "newName": thingName,
+                     "newTD": epu(thingTD, nss)}).post()
+                     
+        self.startAction = Action(
+            engine, {"td": self.webThing.td,
+                     "action": epu(thingUri+"/start", nss),
+                     "newName": self.webThing.name+"_startGas",
+                     "ids": dataschema["boolean"]},
+            lambda a, r: None).post()
+                     
+    def enable(self):
+        
+        def startGas(added, removed):
+            pass
+
+        self.startAction.action_task = startGas
+        self.startAction.enable()
+        
+    def disable(self):
+        self.startAction.disable()

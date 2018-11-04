@@ -23,80 +23,57 @@
 #  
 
 import sys
-
-from sepy.Sepa import Sepa as Engine
-
-from cocktail.DataSchema import DataSchema
-
 import argparse
+import yaml
+import logging
 
-def dataschema_builder(engine):
-    bindings = dict.fromkeys(DataSchema.getBindingList(),"")
-    bindings["fs_types"] = "xsd:_"
-    
-    # smoke sensor and gas emitter actuator share the same dataschema
-    bindings["ds_uri"] = "<http://dataschema.wot/xsd_boolean>"
-    bindings["fs_uri"] = "xsd:boolean"
-    smoke_gas_DS = DataSchema(engine,bindings)
-    smoke_gas_DS.post()
-    
-    bindings["ds_uri"] = "<http://dataschema.wot/xsd_double>"
-    bindings["fs_uri"] = "xsd:double"
-    # bindings["fs_types"] = "xsd:_" # unchanged from above
-    temperature_DS = DataSchema(engine,bindings)
-    temperature_DS.post()
-    
-    bindings["ds_uri"] = "<http://dataschema.wot/acoustic_signal>"
-    bindings["fs_uri"] = "<http://fieldschema.wot/acoustic_signal_jsonschema>" 
-# {
-#   "$schema": "http://wot.unibo.it/acoustic_signal_schema",
-#   "type": "object",
-#   "properties":{
-#       "db":{
-#           "type":"number"
-#       },
-#       "len":{
-#           "type":"integer"
-#       }
-#   }
-# }
-    alarm_DS = DataSchema(engine,bindings)
-    alarm_DS.post()
-    
-    bindings["ds_uri"] = "<http://dataschema.wot/light_signal>"
-    bindings["fs_uri"] = "<http://fieldschema.wot/light_signal_jsonschema>"
-    light_DS = DataSchema(engine,bindings)
-    light_DS.post()
+from sepy.SAPObject import SAPObject
+from sepy.SEPA import SEPA
+from cocktail.utils import generate_cocktail_sap
+from benchmark_dataschemas import *
+from Room import Room
+from time import time
+
+PREFIX_COCKTAIL_BENCHMARK = ("ct", "http://Cocktail/Benchmark#")
+
+logger = logging.getLogger("CocktailBenchmarkLogger")
+logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(
+    format='%(filename)s:%(funcName)s:%(levelname)s:%(message)s',
+    level=logging.DEBUG)
+
 
 def main(args):
-    sepa = Engine(  ip = args["ip"],
-                http_port = args["query_port"],
-                ws_port = args["sub_port"],
-                security = {"secure": args["security"], 
-                            "tokenURI": args["token_uri"], 
-                            "registerURI": args["registration_uri"]})
+    sap_file = generate_cocktail_sap(None)
+    ysap = SAPObject(yaml.load(sap_file))
+    ysap.update_namespaces(
+        PREFIX_COCKTAIL_BENCHMARK[0], PREFIX_COCKTAIL_BENCHMARK[1])
+    engine = SEPA(sapObject=ysap, logLevel=logging.INFO)
+    engine.clear()
     
-    try:
-        # Checking if SEPA is online, erasing content before test
-        sepa.clear()
-    except Exception as e:
-        print(str(e))
-        return 1
+    setupStartTime = time()
+    # setting up dataschemas
+    dataschemas = {"boolean": boolean_dataschema(engine).uri,
+                   "double": double_dataschema(engine).uri,
+                   "light_blink": light_blink_dataschema(engine).uri}
     
-    dataschema_builder(sepa)
+    room_array = [Room(engine, i, dataschemas).run()
+                  for i in range(int(args["rooms"]))]
+    logger.info("Setup elapsed time: {}".format(time() - setupStartTime))
+    
+    triple_total = engine.sparql_query(
+        "SELECT (COUNT(?s) AS ?triples) WHERE { ?s ?p ?o }")
+    logger.info("Total number of triples: {}".format(
+        triple_total["results"]["bindings"][0]["triples"]["value"]))
+    
+    for room in room_array:
+        room.shutdown()
+    
     return 0
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="WoT Fire Alarm Benchmark")
-    parser.add_argument("-ip", default="localhost", help="Sepa ip")
-    parser.add_argument("-query_port", default=8000, help="Sepa query/update port")
-    parser.add_argument("-sub_port", default=9000, help="Sepa subscription port")
-    parser.add_argument("-token_uri", default=None, help="Sepa token uri")
-    parser.add_argument("-registration_uri", default=None, help="Sepa registration uri")
-    parser.add_argument("rooms",help="Number of rooms for the benchmark")
+    parser.add_argument("rooms", help="Number of rooms")
     arguments = vars(parser.parse_args())
-    if ((arguments["token_uri"] is not None) and (arguments["registration_uri"] is not None)):
-        arguments["security"] = True
-    else:
-        arguments["security"] = False
     sys.exit(main(arguments))
