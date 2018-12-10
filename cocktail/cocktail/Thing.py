@@ -22,6 +22,7 @@
 #  
 #  
 
+from rdflib import Graph, Literal, Namespace, RDF
 from sepy.tablaze import tablify
 
 import logging
@@ -77,7 +78,7 @@ class Thing:
         """
         d_output = sepa.query("DISCOVER_THINGS", bindings)
         if nice_output:
-            tablify(d_output, prefix_file=sepa.get_namespaces(stringList=True))
+            tablify(d_output, prefix_file=sepa.sap.get_namespaces(stringList=True))
         return d_output
         
     @property
@@ -107,3 +108,11 @@ class Thing:
         the constructor.
         """
         return self._sepa.sap.updates["NEW_THING"]["forcedBindings"].keys()
+    
+    @staticmethod
+    def toJsonLD(sepa, thingURI, destination=None, nice_output=False):
+        result = sepa.query(
+            "JSONLD_CONSTRUCT", forcedBindings={"thing": thingURI},
+            destination=destination)
+        tablify(result, prefix_file=sepa.sap.get_namespaces(stringList=True))
+        return result

@@ -1,0 +1,3 @@
+# 3 rooms profile
+# [case number] [room] [sensor triggered] [room] [sensor triggered] [lights on] [gas] [sound dB]
+1 2 t1 2 t2 "{'freq':0.5}" 1 130

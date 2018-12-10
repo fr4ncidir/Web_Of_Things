@@ -26,6 +26,7 @@ import sys
 import argparse
 import yaml
 import logging
+import re
 
 from sepy.SAPObject import SAPObject
 from sepy.SEPA import SEPA
@@ -41,6 +42,18 @@ logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(
     format='%(filename)s:%(funcName)s:%(levelname)s:%(message)s',
     level=logging.DEBUG)
+
+
+def benchmark_core(engine, profile, roomArray):
+    with open(profile, "w") as benchmark_profile:
+        while True:
+            line = benchmark_profile.readline()
+            if line.startswith("#"):
+                continue
+            elif line != "":
+                pass
+            else:
+                break
 
 
 def main(args):
@@ -66,6 +79,8 @@ def main(args):
     logger.info("Total number of triples: {}".format(
         triple_total["results"]["bindings"][0]["triples"]["value"]))
     
+    benchmark_core(engine, args["profile"], room_array)
+    
     for room in room_array:
         room.shutdown()
     
@@ -75,5 +90,6 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="WoT Fire Alarm Benchmark")
     parser.add_argument("rooms", help="Number of rooms")
+    parser.add_argument("profile", help="benchmark profile")
     arguments = vars(parser.parse_args())
     sys.exit(main(arguments))

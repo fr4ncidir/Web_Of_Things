@@ -24,6 +24,7 @@ cocktail/queries/action.sparql
 cocktail/queries/data_schema.sparql
 cocktail/queries/event.sparql
 cocktail/queries/interaction_pattern.sparql
+cocktail/queries/jsonld-construct.sparql
 cocktail/queries/property.sparql
 cocktail/queries/thing.sparql
 cocktail/queries/thing_description.sparql
