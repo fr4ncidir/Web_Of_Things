@@ -88,7 +88,14 @@
     <!-- http://wot.arces.unibo.it/ontology/web_of_things#hasDataSchema -->
 
     <owl:ObjectProperty rdf:about="http://wot.arces.unibo.it/ontology/web_of_things#hasDataSchema">
-        <rdfs:domain rdf:resource="http://wot.arces.unibo.it/ontology/web_of_things#InteractionPattern"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://wot.arces.unibo.it/ontology/web_of_things#Data"/>
+                    <rdf:Description rdf:about="http://wot.arces.unibo.it/ontology/web_of_things#InteractionPattern"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
         <rdfs:range rdf:resource="http://wot.arces.unibo.it/ontology/web_of_things#DataSchema"/>
         <rdfs:comment xml:lang="en">Pointers to Web Things interaction DataSchema</rdfs:comment>
     </owl:ObjectProperty>
