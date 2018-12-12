@@ -9,21 +9,50 @@ JSONLD_CONSTRUCT:
     sparql: "
         construct {
             ?thing  rdf:type wot:Thing;
-                    wot:hasThingDescription ?td;
-                    wot:hasName ?tName.
+                wot:hasThingDescription ?td;
+                wot:hasName ?tName.
             ?thing wot:hasSubThing ?subThing.
             ?td wot:hasInteractionPattern ?ip.
-            ?ip rdf:type ?ip_type.
+            ?ip rdf:type ?ip_type;
+                wot:hasName ?ipatternName.
+            ?ip wot:hasInputDataSchema ?iDS.
+            ?iDS wot:hasFieldSchema ?iFS.
+            ?iFS rdf:type ?iFS_type.
+            ?ip wot:hasOutputDataSchema ?oDS.
+            ?oDS wot:hasFieldSchema ?oFS.
+            ?oFS rdf:type ?oFS_type.
+            ?ip wot:hasStability ?pStability;
+                wot:isWritable ?pWritability;
+                wot:hasPropertyDataSchema ?pDS;
+                wot:hasPropertyData ?smtg.
+            ?smtg dul:hasDataValue ?pValue.
+            ?pDS wot:hasFieldSchema ?pFS.
             ?ip wot:forProperty ?pTarget }
         where {
             ?thing  rdf:type wot:Thing;
-                    wot:hasThingDescription ?td;
-                    wot:hasName ?tName.
+                wot:hasThingDescription ?td;
+                wot:hasName ?tName.
             optional {?thing wot:hasSubThing ?subThing}.
             ?td wot:hasInteractionPattern ?ip.
-            ?ip rdf:type ?ip_type.
-            optional{?ip wot:forProperty ?pTarget}.
-            filter (?ip_type != wot:InteractionPattern)
+            ?ip rdf:type ?ip_type;
+                wot:hasName ?ipatternName.
+            optional {
+                ?ip wot:hasInputDataSchema ?iDS.
+                ?iDS wot:hasFieldSchema ?iFS.
+                ?iFS rdf:type ?iFS_type. }
+            optional {
+                ?ip wot:hasOutputDataSchema ?oDS.
+                ?oDS wot:hasFieldSchema ?oFS.
+                ?oFS rdf:type ?oFS_type. }
+            optional {
+                ?ip wot:hasStability ?pStability;
+                    wot:isWritable ?pWritability;
+                    wot:hasPropertyDataSchema ?pDS;
+                    wot:hasPropertyData ?smtg.
+                ?smtg dul:hasDataValue ?pValue.
+                ?pDS wot:hasFieldSchema ?pFS.
+                ?pFS rdf:type ?pFS_type.}
+            optional{?ip wot:forProperty ?pTarget}
         }"
     forcedBindings:
         thing:

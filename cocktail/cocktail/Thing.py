@@ -22,13 +22,23 @@
 #  
 #  
 
-from rdflib import Graph, Literal, Namespace, RDF
+from rdflib import Graph, Literal, BNode, URIRef
 from sepy.tablaze import tablify
+from io import TextIOBase
 
 import logging
 
+
 logger = logging.getLogger("cocktail_log")
 
+
+def graphNodeBuilder(binding):
+    if binding["type"] == "uri":
+        return URIRef(binding["value"])
+    elif binding["type"] == "literal":
+        return Literal(binding["value"])
+    return BNode()
+    
 
 class Thing:
     """
@@ -108,11 +118,48 @@ class Thing:
         the constructor.
         """
         return self._sepa.sap.updates["NEW_THING"]["forcedBindings"].keys()
+        
+    def jsonLDexport(self, destination):
+        """
+        Method to export the current WebThing object descriptor in a JSON-LD
+        format into the file pointed to by 'destination'.
+        Wraps the static method Thing.toJsonLD().
+        """
+        Thing.toJsonLD(self._sepa, self.uri, destination=destination)
     
     @staticmethod
     def toJsonLD(sepa, thingURI, destination=None, nice_output=False):
+        """
+        Static method that exports the descriptor of a WebThing having URI
+        'thingURI' in a JSON-LD file pointed to by 'destination', if available.
+        The output can be also seen as table on stdout, if 'nice_output' is True.
+        """
         result = sepa.query(
             "JSONLD_CONSTRUCT", forcedBindings={"thing": thingURI},
             destination=destination)
-        tablify(result, prefix_file=sepa.sap.get_namespaces(stringList=True))
-        return result
+        
+        if nice_output:
+            tablify(result, prefix_file=sepa.sap.get_namespaces(stringList=True))
+        
+        thingGraph = Graph()
+        for binding in result["results"]["bindings"]:
+            # subject
+            s = graphNodeBuilder(binding["subject"])
+            # predicate
+            p = graphNodeBuilder(binding["predicate"])
+            # object
+            o = graphNodeBuilder(binding["object"])
+            thingGraph.add((s, p, o))
+        
+        jld_result = thingGraph.serialize(format="json-ld").decode("utf-8")
+        if destination is not None:
+            try:
+                if isinstance(destination, TextIOBase):
+                    print(jld_result, file=destination)
+                else:
+                    with open(destination, "w") as jld_output:
+                        print(jld_result, file=jld_output)
+            except Exception as e:
+                logger.error("Unable to export json-ld file: {}".format(e))
+        
+        return jld_result
