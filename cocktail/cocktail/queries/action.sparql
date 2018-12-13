@@ -12,19 +12,19 @@ DESCRIBE_ACTION:
                 ?oDS ?oFS ?oFS_type
                 (group_concat(?props; separator='; ') as ?property)
         where {
-            ?action rdf:type wot:Action;
-                    wot:hasName ?aName.
+            ?action rdf:type swot:Action;
+                    swot:hasName ?aName.
             optional {
-                ?action wot:hasInputDataSchema ?iDS.
-                ?iDS wot:hasFieldSchema ?iFS.
+                ?action swot:hasInputDataSchema ?iDS.
+                ?iDS swot:hasFieldSchema ?iFS.
                 ?iFS rdf:type ?iFS_type.
-                filter (?iFS_type != wot:FieldSchema) }.
+                filter (?iFS_type != swot:FieldSchema) }.
             optional {
-                ?action wot:hasOutputDataSchema ?oDS.
-                ?oDS wot:hasFieldSchema ?oFS.
+                ?action swot:hasOutputDataSchema ?oDS.
+                ?oDS swot:hasFieldSchema ?oFS.
                 ?oFS rdf:type ?oFS_type.
-                filter (?oFS_type != wot:FieldSchema) }.
-            optional {?action wot:forProperty ?props}
+                filter (?oFS_type != swot:FieldSchema) }.
+            optional {?action swot:forProperty ?props}
             values (?action) {(?action_uri)}
         }
         group by ?action ?aName ?iDS ?iFS ?iFS_type ?oDS ?oFS ?oFS_type"

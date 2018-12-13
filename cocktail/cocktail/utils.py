@@ -38,11 +38,8 @@ logger = logging.getLogger("cocktailLogger")
 
 COCKTAIL_NAMESPACES = {
     "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "owl": "http://www.w3.org/2002/07/owl#",
-    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    "dul": "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
-    "wot": "http://wot.arces.unibo.it/ontology/web_of_things#"}
+    "swot": "http://wot.arces.unibo.it/ontology/web_of_things#"}
 
 
 def sparqlFolderToSap(queryfolder, file_filter=None):
@@ -132,6 +129,8 @@ def cfr_bindings(bA, bB, ignorance):
     returns True if bindings are equal, False otherwise
     """
     for key in bA:
+        if bA[key]["type"] == "bnode":
+            continue
         if not (key in bB and bA[key]["type"] == bB[key]["type"] and (key in ignorance or bA[key]["value"] == bB[key]["value"])):
             return False
     return True

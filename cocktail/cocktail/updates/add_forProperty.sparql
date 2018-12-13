@@ -8,10 +8,10 @@
 
 ADD_FORPROPERTY:
     sparql: "
-        insert { ?ip wot:forProperty ?property }
+        insert { ?ip swot:forProperty ?property }
         where {
-            {?ip rdf:type wot:Action} UNION {?ip rdf:type wot:Event}.
-            ?property a wot:Property
+            {?ip rdf:type swot:Action} UNION {?ip rdf:type swot:Event}.
+            ?property a swot:Property
         }
         "
     forcedBindings:

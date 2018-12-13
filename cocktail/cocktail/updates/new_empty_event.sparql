@@ -9,11 +9,11 @@
 ADD_EMPTY_EVENT:
     sparql: "
         insert {
-            ?td wot:hasInteractionPattern ?event;
-                wot:hasEvent ?event.
-            ?event  rdf:type wot:InteractionPattern, wot:Event;
-                    wot:hasName ?eName }
-        where { ?td rdf:type wot:ThingDescription }"
+            ?td swot:hasInteractionPattern ?event;
+                swot:hasEvent ?event.
+            ?event  rdf:type swot:InteractionPattern, swot:Event;
+                    swot:hasName ?eName }
+        where { ?td rdf:type swot:ThingDescription }"
     forcedBindings:
         td:
             type: uri

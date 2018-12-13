@@ -11,10 +11,10 @@ DISCOVER_INTERACTION_PATTERNS:
     sparql: "
         select *
         where {
-            ?td wot:hasInteractionPattern ?ipattern.
+            ?td swot:hasInteractionPattern ?ipattern.
             ?ipattern   rdf:type ?ipatterntype;
-                        wot:hasName ?ipatternName.
-            filter (?ipatterntype != wot:InteractionPattern)
+                        swot:hasName ?ipatternName.
+            filter (?ipatterntype != swot:InteractionPattern)
             values (?td ?ipatterntype) {(?td_uri ?ipattern_type_specific)} 
         }"
     forcedBindings:

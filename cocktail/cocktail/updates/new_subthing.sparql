@@ -10,10 +10,10 @@
 
 NEW_SUBTHING:
     sparql: "
-        insert { ?superthing wot:hasSubThing ?subthing }
+        insert { ?superthing swot:hasSubThing ?subthing }
         where { 
-            ?superthing rdf:type wot:Thing.
-            ?subthing rdf:type wot:Thing }"
+            ?superthing rdf:type swot:Thing.
+            ?subthing rdf:type swot:Thing }"
     forcedBindings:
         superthing:
             type: uri

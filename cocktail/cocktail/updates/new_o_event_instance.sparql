@@ -11,32 +11,35 @@
 #     \__|___|_|_| |_|___/\__\__,_|_| |_|\___\___|
 #       |_____|
 #
+#   swot:hasValue triple is not always needed. Therefore this update depends on the 
+#   forcedBindings given. If there is a Literal value, this is the good output event instance
+#   sparql, otherwise look to new_o_event_instance_novalue.sparql
 
 NEW_O_EVENT_INSTANCE:
     sparql: "
         delete {
-            ?event wot:hasEventInstance ?oldEInstance.
-            ?oldEInstance   rdf:type wot:EventInstance; 
-                            wot:occurredAt ?oldTS;
-                            wot:hasOutputData ?oldOData.
-            ?oldOData   dul:hasDataValue ?oldValue;
-                        wot:hasOutputDataSchema ?oldDS}
+            ?event swot:hasEventInstance ?oldEInstance.
+            ?oldEInstance   rdf:type swot:EventInstance, swot:Instance; 
+                            swot:occurredAt ?oldTS;
+                            swot:hasOutputData ?oldOData.
+            ?oldOData   swot:hasValue ?oldValue;
+                        swot:hasOutputDataSchema ?oldDS}
         insert {
-            ?event wot:hasEventInstance ?newEInstance.
-            ?newEInstance   rdf:type wot:EventInstance;
-                            wot:occurredAt ?newTS;
-                            wot:hasOutputData ?newOData.
-            ?newOData   dul:hasDataValue ?newValue;
-                        wot:hasOutputDataSchema ?newDS}
+            ?event swot:hasEventInstance ?newEInstance.
+            ?newEInstance   rdf:type swot:EventInstance, swot:Instance;
+                            swot:occurredAt ?newTS;
+                            swot:hasOutputData ?newOData.
+            ?newOData   swot:hasValue ?newValue;
+                        swot:hasOutputDataSchema ?newDS}
         where {
-            ?event rdf:type wot:Event.
+            ?event rdf:type swot:Event.
             optional {
-                ?event wot:hasEventInstance ?oldEInstance.
-                ?oldEInstance   rdf:type wot:EventInstance; 
-                                wot:occurredAt ?oldTS;
-                                wot:hasOutputData ?oldOData.
-                ?oldOData   dul:hasDataValue ?oldValue;
-                            wot:hasOutputDataSchema ?oldDS}
+                ?event swot:hasEventInstance ?oldEInstance.
+                ?oldEInstance   rdf:type swot:EventInstance, swot:Instance; 
+                                swot:occurredAt ?oldTS;
+                                swot:hasOutputData ?oldOData.
+                ?oldOData   swot:hasValue ?oldValue;
+                            swot:hasOutputDataSchema ?oldDS}
             bind (now() as ?newTS)
         }
         "

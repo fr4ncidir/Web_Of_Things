@@ -17,31 +17,25 @@
 #	Event 1 Name: 								'Thing3_Event1'
 
 
-prefix wot: <http://wot.arces.unibo.it/ontology/web_of_things#>
-prefix dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#>
-prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-prefix owl: <http://www.w3.org/2002/07/owl#>
-prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix swot: <http://wot.arces.unibo.it/ontology/web_of_things#>
 prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-prefix foaf: <http://xmlns.com/foaf/0.1/>
 
 insert data {
 	# BASIC INFORMATION
-  <http://MyThirdWebThing.com> 	rdf:type wot:Thing, dul:Agent;
-									wot:hasName 'Thing3';
-									wot:hasThingDescription <http://MyThirdWebThingDescription.com>.
-  <http://MyThirdWebThingDescription.com> 	rdf:type wot:ThingDescription;
-											wot:hasInteractionPattern 	<http://MyThirdWebThing.com/Action1>, 
+  <http://MyThirdWebThing.com> 	rdf:type swot:Thing;
+									swot:hasName 'Thing3';
+									swot:hasThingDescription <http://MyThirdWebThingDescription.com>.
+  <http://MyThirdWebThingDescription.com> 	rdf:type swot:ThingDescription;
+											swot:hasInteractionPattern 	<http://MyThirdWebThing.com/Action1>, 
 																	<http://MyThirdWebThing.com/Event1>;
-											wot:hasAction <http://MyThirdWebThing.com/Action1>;
-											wot:hasEvent <http://MyThirdWebThing.com/Event1>.
+											swot:hasAction <http://MyThirdWebThing.com/Action1>;
+											swot:hasEvent <http://MyThirdWebThing.com/Event1>.
 	
 	# ACTION TRIPLES
-  <http://MyThirdWebThing.com/Action1> 	rdf:type wot:InteractionPattern, wot:Action;
-											wot:hasName 'Thing3_Action1'.
+  <http://MyThirdWebThing.com/Action1> 	rdf:type swot:InteractionPattern, swot:Action;
+											swot:hasName 'Thing3_Action1'.
   
 	# EVENT 1 TRIPLES
-  <http://MyThirdWebThing.com/Event1> 	rdf:type wot:InteractionPattern, wot:Event;
-										wot:hasName 'Thing3_Event1'.
+  <http://MyThirdWebThing.com/Event1> 	rdf:type swot:InteractionPattern, swot:Event;
+										swot:hasName 'Thing3_Event1'.
   }

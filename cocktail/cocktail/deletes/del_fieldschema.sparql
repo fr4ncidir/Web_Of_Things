@@ -12,13 +12,13 @@
 DELETE_THING:
     sparql: "
         delete {
-  ?thing wot:hasThingDescription ?td.
+  ?thing swot:hasThingDescription ?td.
             ?td ?any_td_predicate ?any_td_object.
             ?any_super_subject ?any_super_predicate ?thing.
             ?thing ?any_thing_predicate ?any_thing_object
   }
 where {
-            ?thing wot:hasThingDescription ?td.
+            ?thing swot:hasThingDescription ?td.
             optional {?td ?any_td_predicate ?any_td_object}.
             optional {?any_super_subject ?any_super_predicate ?thing}.
             optional {?thing ?any_thing_predicate ?any_thing_object }}"

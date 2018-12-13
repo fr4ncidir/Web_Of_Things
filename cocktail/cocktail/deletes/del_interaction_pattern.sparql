@@ -15,23 +15,23 @@
 DELETE_INTERACTION_PATTERN:
     sparql: "
         delete {
-			?td wot:hasInteractionPattern ?ip;
-				wot:hasAction ?ip;
-				wot:hasEvent ?ip;
-				wot:hasProperty ?ip.
-            ?ip rdf:type wot:InteractionPattern.
-                ?ip rdf:type wot:Property;
-                    wot:hasPropertyData ?pd.
+			?td swot:hasInteractionPattern ?ip;
+				swot:hasAction ?ip;
+				swot:hasEvent ?ip;
+				swot:hasProperty ?ip.
+            ?ip rdf:type swot:InteractionPattern.
+                ?ip rdf:type swot:Property;
+                    swot:hasPropertyData ?pd.
                 ?pd ?any_pd_predicate ?any_pd_object .
             ?ip ?any_ip_predicate ?any_ip_object
 		}
 		where {
-            ?td wot:hasInteractionPattern ?ip.
-            optional {?td wot:hasAction|wot:hasEvent|wot:hasProperty ?ip}.
-            ?ip rdf:type wot:InteractionPattern.
+            ?td swot:hasInteractionPattern ?ip.
+            optional {?td swot:hasAction|swot:hasEvent|swot:hasProperty ?ip}.
+            ?ip rdf:type swot:InteractionPattern.
             optional {
-                ?ip rdf:type wot:Property;
-                    wot:hasPropertyData ?pd.
+                ?ip rdf:type swot:Property;
+                    swot:hasPropertyData ?pd.
                 ?pd ?any_pd_predicate ?any_pd_object }.
             ?ip ?any_ip_predicate ?any_ip_object
         }"

@@ -10,9 +10,9 @@ SUBSCRIBE_INSTANCE_OUTPUT:
     sparql: "
         select *
         where {
-            ?instance   wot:hasOutputData ?od.
-            ?od  dul:hasDataValue ?oValue;
-                 wot:hasOutputDataSchema ?oDS
+            ?instance   swot:hasOutputData ?od.
+            optional{ ?od  swot:hasValue ?oValue }
+            ?od swot:hasOutputDataSchema ?oDS
         }"
     forcedBindings:
         instance:

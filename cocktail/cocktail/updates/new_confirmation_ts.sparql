@@ -8,9 +8,9 @@
 
 ADD_CONFIRMATION_TIMESTAMP:
     sparql: "
-        insert {?aInstance wot:hasConfirmationTimeStamp ?ts}
+        insert {?aInstance swot:hasConfirmationTimeStamp ?ts}
         where {
-            ?aInstance rdf:type wot:ActionInstance.
+            ?aInstance rdf:type swot:ActionInstance.
             bind (now() as ?ts)
         }"
     forcedBindings:

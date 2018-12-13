@@ -10,14 +10,14 @@ DESCRIBE_EVENT:
     sparql: "
         select * 
         where {
-            ?event  rdf:type wot:Event;
-                    wot:hasName ?eName.
+            ?event  rdf:type swot:Event;
+                    swot:hasName ?eName.
             optional {
-                ?event wot:hasOutputDataSchema ?oDS.
-                ?oDS wot:hasFieldSchema ?oFS.
+                ?event swot:hasOutputDataSchema ?oDS.
+                ?oDS swot:hasFieldSchema ?oFS.
                 ?oFS rdf:type ?oFS_type.
-                filter (?oFS_type != wot:FieldSchema) }.
-            optional {?event wot:forProperty ?property}.
+                filter (?oFS_type != swot:FieldSchema) }.
+            optional {?event swot:forProperty ?property}.
             values (?event) {(?event_uri)}
         }"
     forcedBindings:

@@ -9,13 +9,11 @@
 ADD_EMPTY_ACTION:
     sparql: "
         insert {
-            ?td wot:hasInteractionPattern ?action;
-                wot:hasAction ?action.
-            ?action rdf:type wot:InteractionPattern, wot:Action;
-                    wot:hasName ?newName}
-        where {
-            ?td rdf:type wot:ThingDescription
-        }"
+            ?td swot:hasInteractionPattern ?action;
+                swot:hasAction ?action.
+            ?action rdf:type swot:InteractionPattern, swot:Action;
+                    swot:hasName ?newName}
+        where { ?td rdf:type swot:ThingDescription }"
     forcedBindings:
         td:
             type: uri

@@ -8,51 +8,40 @@
 JSONLD_CONSTRUCT:
     sparql: "
         construct {
-            ?thing  rdf:type wot:Thing;
-                wot:hasThingDescription ?td;
-                wot:hasName ?tName.
-            ?thing wot:hasSubThing ?subThing.
-            ?td wot:hasInteractionPattern ?ip.
+            ?thing  rdf:type swot:Thing;
+                swot:hasThingDescription ?td;
+                swot:hasName ?tName;
+                swot:hasSubThing ?subThing.
+            ?td swot:hasInteractionPattern ?ip.
             ?ip rdf:type ?ip_type;
-                wot:hasName ?ipatternName.
-            ?ip wot:hasInputDataSchema ?iDS.
-            ?iDS wot:hasFieldSchema ?iFS.
-            ?iFS rdf:type ?iFS_type.
-            ?ip wot:hasOutputDataSchema ?oDS.
-            ?oDS wot:hasFieldSchema ?oFS.
-            ?oFS rdf:type ?oFS_type.
-            ?ip wot:hasStability ?pStability;
-                wot:isWritable ?pWritability;
-                wot:hasPropertyDataSchema ?pDS;
-                wot:hasPropertyData ?smtg.
-            ?smtg dul:hasDataValue ?pValue.
-            ?pDS wot:hasFieldSchema ?pFS.
-            ?ip wot:forProperty ?pTarget }
+                swot:hasName ?ipatternName.
+            ?ip ?allDSrelation ?DS.
+            ?DS swot:hasFieldSchema ?FS.
+            ?FS rdf:type ?iFS_type.
+            ?ip swot:hasStability ?pStability;
+                swot:isWritable ?pWritability;
+                swot:hasPropertyData ?pData.
+            ?pData swot:hasValue ?pValue.
+            ?ip swot:forProperty ?pTarget }
         where {
-            ?thing  rdf:type wot:Thing;
-                wot:hasThingDescription ?td;
-                wot:hasName ?tName.
-            optional {?thing wot:hasSubThing ?subThing}.
-            ?td wot:hasInteractionPattern ?ip.
+            ?thing  rdf:type swot:Thing;
+                swot:hasThingDescription ?td;
+                swot:hasName ?tName.
+            optional {?thing swot:hasSubThing ?subThing}.
+            ?td swot:hasInteractionPattern ?ip.
             ?ip rdf:type ?ip_type;
-                wot:hasName ?ipatternName.
+                swot:hasName ?ipatternName.
             optional {
-                ?ip wot:hasInputDataSchema ?iDS.
-                ?iDS wot:hasFieldSchema ?iFS.
-                ?iFS rdf:type ?iFS_type. }
+                ?ip ?allDSrelation ?DS.
+                ?DS swot:hasFieldSchema ?FS.
+                ?FS rdf:type ?FS_type. }
             optional {
-                ?ip wot:hasOutputDataSchema ?oDS.
-                ?oDS wot:hasFieldSchema ?oFS.
-                ?oFS rdf:type ?oFS_type. }
-            optional {
-                ?ip wot:hasStability ?pStability;
-                    wot:isWritable ?pWritability;
-                    wot:hasPropertyDataSchema ?pDS;
-                    wot:hasPropertyData ?smtg.
-                ?smtg dul:hasDataValue ?pValue.
-                ?pDS wot:hasFieldSchema ?pFS.
-                ?pFS rdf:type ?pFS_type.}
-            optional{?ip wot:forProperty ?pTarget}
+                ?ip swot:hasStability ?pStability;
+                    swot:isWritable ?pWritability;
+                    swot:hasPropertyData ?pData.
+                optional {?pData swot:hasValue ?pValue}}
+            optional{?ip swot:forProperty ?pTarget}
+            values (?allDSrelation) {(swot:hasDataSchema) (swot:hasInputDataSchema) (swot:hasOutputDataSchema) (swot:hasPropertyDataSchema)}
         }"
     forcedBindings:
         thing:

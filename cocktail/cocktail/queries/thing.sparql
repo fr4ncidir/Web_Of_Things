@@ -11,10 +11,10 @@ DISCOVER_THINGS:
     sparql: "
     select *
     where {
-        ?thing  rdf:type wot:Thing;
-                wot:hasName ?name;
-                wot:hasThingDescription ?td.
-		optional {?thing wot:hasSubThing ?subThing}.
+        ?thing  rdf:type swot:Thing;
+                swot:hasName ?name;
+                swot:hasThingDescription ?td.
+		optional {?thing swot:hasSubThing ?subThing}.
         values (?thing ?name ?td) {(?thing_uri ?name_literal ?td_uri)}.
     }"
     forcedBindings:

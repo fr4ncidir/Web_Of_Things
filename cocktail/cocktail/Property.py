@@ -32,7 +32,7 @@ logger = logging.getLogger("cocktail_log")
 
 class Property(InteractionPattern):
     """
-    wot:Property python implementation
+    swot:Property python implementation
     Extends InteractionPattern
     """
     
@@ -44,7 +44,10 @@ class Property(InteractionPattern):
         Posts the thing to the rdf store.
         """
         logger.info("Posting property {}: {}".format(self.name, self.uri))
-        self._sepa.update("ADD_UPDATE_PROPERTY", forcedBindings=self._bindings)
+        if (("newValue" in self._bindings) and (self._bindings["newValue"] != "")):
+            self._sepa.update("ADD_UPDATE_PROPERTY", forcedBindings=self._bindings)
+        else:
+            self._sepa.update("ADD_UPDATE_PROPERTY_NOVALUE", forcedBindings=self._bindings)
         return self
         
     def update(self, bindings):

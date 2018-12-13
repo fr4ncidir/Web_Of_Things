@@ -15,26 +15,26 @@
 NEW_EMPTY_ACTION_INSTANCE:
     sparql: "
         delete {
-            ?action wot:hasActionInstance ?oldAInstance.
-            ?oldAInstance   rdf:type wot:ActionInstance; 
-							wot:hasRequestTimeStamp ?oldATS;
-                            wot:hasConfirmationTimeStamp ?oldCTS;
-                            wot:hasCompletionTimeStamp ?oldCCTS;
-                            wot:requestedBy ?oldAuthor }
+            ?action swot:hasActionInstance ?oldAInstance.
+            ?oldAInstance   rdf:type swot:ActionInstance, swot:Instance; 
+							swot:hasRequestTimeStamp ?oldATS;
+                            swot:hasConfirmationTimeStamp ?oldCTS;
+                            swot:hasCompletionTimeStamp ?oldCCTS;
+                            swot:requestedBy ?oldAuthor }
         insert {
-            ?action wot:hasActionInstance ?newAInstance.
-            ?newAInstance   rdf:type wot:ActionInstance;
-							wot:hasRequestTimeStamp ?newATS;
-                            wot:requestedBy ?newAuthor }
+            ?action swot:hasActionInstance ?newAInstance.
+            ?newAInstance   rdf:type swot:ActionInstance, swot:Instance;
+							swot:hasRequestTimeStamp ?newATS;
+                            swot:requestedBy ?newAuthor }
         where {
-            ?action rdf:type wot:Action.
+            ?action rdf:type swot:Action.
             optional {
-                ?action wot:hasActionInstance ?oldAInstance.
-                ?oldAInstance   rdf:type wot:ActionInstance;
-								wot:hasRequestTimeStamp ?oldATS;
-                                wot:hasConfirmationTimeStamp ?oldCTS;
-                                wot:hasCompletionTimeStamp ?oldCCTS;
-                                wot:requestedBy ?oldAuthor 
+                ?action swot:hasActionInstance ?oldAInstance.
+                ?oldAInstance   rdf:type swot:ActionInstance, swot:Instance;
+								swot:hasRequestTimeStamp ?oldATS;
+                                swot:hasConfirmationTimeStamp ?oldCTS;
+                                swot:hasCompletionTimeStamp ?oldCCTS;
+                                swot:requestedBy ?oldAuthor 
             }
             bind (now() as ?newATS)
         }

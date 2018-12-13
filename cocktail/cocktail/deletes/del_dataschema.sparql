@@ -12,12 +12,12 @@
 DELETE_THING:
     sparql: "
         delete {
-            ?ds_uri rdf:type wot:DataSchema;
-                    wot:hasFieldSchema ?fs_uri.
+            ?ds_uri rdf:type swot:DataSchema;
+                    swot:hasFieldSchema ?fs_uri.
             ?fs_uri rdf:type ?fs_types.
         } where {
-            ?ds_uri rdf:type wot:DataSchema;
-                    wot:hasFieldSchema ?fs_uri.
+            ?ds_uri rdf:type swot:DataSchema;
+                    swot:hasFieldSchema ?fs_uri.
             ?fs_uri rdf:type ?fs_types.
 		}"
     forcedBindings:

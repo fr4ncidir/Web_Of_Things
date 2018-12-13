@@ -7,15 +7,15 @@
 #    
 #   Adds a new dataschema together with fieldschemas.
 #   Binding of ?fs_types should be made in the form
-#   wot:FieldSchema, wot:OntologyURI
-#   wot:FieldSchema, wot:ResourceURI
-#   wot:FieldSchema, xsd:_
+#   swot:FieldSchema, swot:OntologyURI
+#   swot:FieldSchema, swot:ResourceURI
+#   swot:FieldSchema, xsd:_
 
 NEW_DATASCHEMA:
     sparql: "
         insert data {
-            ?ds_uri rdf:type wot:DataSchema;
-                    wot:hasFieldSchema ?fs_uri.
+            ?ds_uri rdf:type swot:DataSchema;
+                    swot:hasFieldSchema ?fs_uri.
             ?fs_uri rdf:type ?fs_types.
         }"
     forcedBindings:

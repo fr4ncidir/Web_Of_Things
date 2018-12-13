@@ -8,9 +8,9 @@
 
 ADD_COMPLETION_TIMESTAMP:
     sparql: "
-        insert {?aInstance wot:hasCompletionTimeStamp ?ts}
+        insert {?aInstance swot:hasCompletionTimeStamp ?ts}
         where {
-            ?aInstance rdf:type wot:ActionInstance.
+            ?aInstance rdf:type swot:ActionInstance.
             bind (now() as ?ts)
         }"
     forcedBindings:

@@ -10,17 +10,17 @@ SUBSCRIBE_EVENT_INSTANCE:
     sparql: "
         select *
         where {
-            ?thing wot:hasThingDescription/wot:hasEvent ?event.
-            ?event wot:hasEventInstance ?eInstance.
-            ?eInstance  wot:occurredAt ?eTS.
+            ?thing swot:hasThingDescription/swot:hasEvent ?event.
+            ?event swot:hasEventInstance ?eInstance.
+            ?eInstance  swot:occurredAt ?eTS.
             optional {
-                ?eInstance wot:hasOutputData ?oData.
-                ?oData  dul:hasDataValue ?oValue;
-                        wot:hasOutputDataSchema ?oDS.
-                ?event wot:hasOutputDataSchema ?oDS.
-                ?oDS wot:hasFieldSchema ?oFS.
+                ?eInstance swot:hasOutputData ?oData.
+                optional{?oData swot:hasValue ?oValue}
+                ?oData  swot:hasOutputDataSchema ?oDS.
+                ?event swot:hasOutputDataSchema ?oDS.
+                ?oDS swot:hasFieldSchema ?oFS.
                 ?oFS rdf:type ?oFS_type.
-                filter (?oFS_type != wot:FieldSchema)
+                filter (?oFS_type != swot:FieldSchema)
             }
         }"
     forcedBindings:

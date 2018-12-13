@@ -42,7 +42,7 @@ class EType(Enum):
 
 class Event(InteractionPattern):
     """
-    wot:Event python implementation
+    swot:Event python implementation
     Extends InteractionPattern
     """
     
@@ -79,8 +79,11 @@ class Event(InteractionPattern):
         Posts to the rdf store a notification, whose data in 'bindings'
         is formatted as in the new-event-instance yaml.
         """
-        self._sepa.update("NEW_{}_EVENT_INSTANCE".format(self._type.value),
-                          forcedBindings=bindings)
+        if ((self._type is EType.EMPTY_EVENT) or (("newValue" in bindings) and (bindings["newValue"] != ""))):
+            self._sepa.update("NEW_{}_EVENT_INSTANCE".format(self._type.value),
+                              forcedBindings=bindings)
+        else:
+            self._sepa.update("NEW_O_EVENT_INSTANCE_NOVALUE", forcedBindings=bindings)
         return bindings["newEInstance"]
     
     @property
@@ -142,7 +145,7 @@ class Event(InteractionPattern):
         """
         query_event = Event.discover(sepa, event=eventURI)
         query_ip = InteractionPattern.discover(
-            sepa, ip_type="wot:Event", nice_output=False)
+            sepa, ip_type="swot:Event", nice_output=False)
         for binding in query_ip["results"]["bindings"]:
             if binding["ipattern"]["value"] == eventURI.replace("<", "").replace(">", ""):
                 td = uriFormat(binding["td"]["value"])

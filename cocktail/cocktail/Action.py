@@ -44,7 +44,7 @@ class AType(Enum):
 
 class Action(InteractionPattern):
     """
-    wot:Action python implementation.
+    swot:Action python implementation.
     Extends InteractionPattern
     """
     
@@ -146,8 +146,12 @@ class Action(InteractionPattern):
         assert not self.isInferred()
         if (self._type is AType.OUTPUT_ACTION) or (self._type is AType.IO_ACTION):
             logger.debug("Posting output for instance "+bindings["instance"])
-            self._sepa.update("NEW_ACTION_INSTANCE_OUTPUT",
-                              forcedBindings=bindings)
+            if (("oValue" in bindings) and (bindings["oValue"] != "")):
+                self._sepa.update("NEW_ACTION_INSTANCE_OUTPUT",
+                                  forcedBindings=bindings)
+            else:
+                self._sepa.update("NEW_ACTION_INSTANCE_OUTPUT_NOVALUE",
+                                  forcedBindings=bindings)
             self.post_completion(bindings["instance"])
            
     def post_completion(self, instance):
@@ -216,7 +220,7 @@ class Action(InteractionPattern):
         """
         query_action = Action.discover(sepa, action=actionURI)
         query_ip = InteractionPattern.discover(
-            sepa, ip_type="wot:Action", nice_output=False)
+            sepa, ip_type="swot:Action", nice_output=False)
         for binding in query_ip["results"]["bindings"]:
             if binding["ipattern"]["value"] == actionURI.replace("<", "").replace(">", ""):
                 td = uriFormat(binding["td"]["value"])
@@ -262,8 +266,12 @@ class Action(InteractionPattern):
                 forcedBindings={"instance": bindings["newAInstance"]},
                 handler=output_handler)
         req_type = AType.INPUT_ACTION.value if (self._type is AType.INPUT_ACTION or self._type is AType.IO_ACTION) else AType.EMPTY_ACTION.value
-        self._sepa.update(
-            "NEW_{}_ACTION_INSTANCE".format(req_type), forcedBindings=bindings)
+        if req_type is AType.EMPTY_ACTION:
+            self._sepa.update("NEW_EMPTY_ACTION_INSTANCE", forcedBindings=bindings)
+        elif (("newIValue" in bindings) and (bindings["newIValue"] != "")):
+            self._sepa.update("NEW_I_ACTION_INSTANCE", forcedBindings=bindings)
+        else:
+            self._sepa.update("NEW_I_ACTION_INSTANCE_NOVALUE", forcedBindings=bindings)
         return bindings["newAInstance"], subids
             
     def isInferred(self):

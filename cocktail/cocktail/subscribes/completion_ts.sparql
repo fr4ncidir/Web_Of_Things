@@ -10,8 +10,8 @@ SUBSCRIBE_COMPLETION_TS:
     sparql: "
         select *
         where {
-                ?aInstance rdf:type wot:ActionInstance;
-                     wot:hasCompletionTimeStamp ?ts
+                ?aInstance rdf:type swot:ActionInstance;
+                     swot:hasCompletionTimeStamp ?ts
         }"
     forcedBindings:
         aInstance:

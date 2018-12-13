@@ -10,8 +10,8 @@ SUBSCRIBE_CONFIRMATION_TS:
     sparql: "
         select *
         where {
-			?aInstance rdf:type wot:ActionInstance;
-				wot:hasConfirmationTimeStamp ?ts
+			?aInstance rdf:type swot:ActionInstance;
+				swot:hasConfirmationTimeStamp ?ts
         }"
     forcedBindings:
         aInstance:

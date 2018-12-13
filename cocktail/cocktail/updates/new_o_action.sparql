@@ -9,15 +9,15 @@
 ADD_O_ACTION:
     sparql: "
         insert {
-            ?td wot:hasInteractionPattern ?action;
-                wot:hasAction ?action.
-            ?action rdf:type wot:InteractionPattern, wot:Action;
-                    wot:hasName ?newName;
-                    wot:hasDataSchema ?ods;
-                    wot:hasOutputDataSchema ?ods}
+            ?td swot:hasInteractionPattern ?action;
+                swot:hasAction ?action.
+            ?action rdf:type swot:InteractionPattern, swot:Action;
+                    swot:hasName ?newName;
+                    swot:hasDataSchema ?ods;
+                    swot:hasOutputDataSchema ?ods}
         where {
-            ?td rdf:type wot:ThingDescription.
-            ?ods rdf:type wot:DataSchema.
+            ?td rdf:type swot:ThingDescription.
+            ?ods rdf:type swot:DataSchema.
         }"
     forcedBindings:
         td:

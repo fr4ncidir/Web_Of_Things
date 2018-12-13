@@ -15,19 +15,19 @@
 NEW_EMPTY_EVENT_INSTANCE:
     sparql: "
         delete {
-            ?event wot:hasEventInstance ?oldEInstance.
-            ?oldEInstance   rdf:type wot:EventInstance; 
-                            wot:occurredAt ?oldTS}
+            ?event swot:hasEventInstance ?oldEInstance.
+            ?oldEInstance   rdf:type swot:EventInstance, swot:Instance; 
+                            swot:occurredAt ?oldTS}
         insert {
-            ?event wot:hasEventInstance ?newEInstance.
-            ?newEInstance   rdf:type wot:EventInstance;
-                            wot:occurredAt ?newTS}
+            ?event swot:hasEventInstance ?newEInstance.
+            ?newEInstance   rdf:type swot:EventInstance, swot:Instance;
+                            swot:occurredAt ?newTS}
         where {
-            ?event rdf:type wot:Event.
+            ?event rdf:type swot:Event.
             optional {
-                ?event wot:hasEventInstance ?oldEInstance.
-                ?oldEInstance   rdf:type wot:EventInstance; 
-                                wot:occurredAt ?oldTS }
+                ?event swot:hasEventInstance ?oldEInstance.
+                ?oldEInstance   rdf:type swot:EventInstance, swot:Instance; 
+                                swot:occurredAt ?oldTS }
             bind (now() as ?newTS)
         }
         "

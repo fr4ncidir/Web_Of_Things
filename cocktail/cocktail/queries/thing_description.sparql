@@ -10,14 +10,14 @@ GET_THING_DESCRIPTION:
     sparql: "
         select * 
         where {
-            ?thing  rdf:type wot:Thing;
-                    wot:hasThingDescription ?td;
-                    wot:hasName ?tName.
-            optional {?thing wot:hasSubThing ?subThing}.
-            ?td wot:hasInteractionPattern ?ip.
+            ?thing  rdf:type swot:Thing;
+                    swot:hasThingDescription ?td;
+                    swot:hasName ?tName.
+            optional {?thing swot:hasSubThing ?subThing}.
+            ?td swot:hasInteractionPattern ?ip.
             ?ip rdf:type ?ip_type.
-            optional{?ip wot:forProperty ?pTarget}.
-            filter (?ip_type != wot:InteractionPattern)
+            optional{?ip swot:forProperty ?pTarget}.
+            filter (?ip_type != swot:InteractionPattern)
             values (?thing) {(?thingURI)}
         }"
     forcedBindings:

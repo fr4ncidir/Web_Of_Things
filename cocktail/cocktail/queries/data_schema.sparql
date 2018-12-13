@@ -11,19 +11,19 @@ GET_DATASCHEMAS:
     sparql: "
         select * 
         where {
-            ?ds rdf:type wot:DataSchema.
-            optional {?ip rdf:type wot:InteractionPattern;
+            ?ds rdf:type swot:DataSchema.
+            optional {?ip rdf:type swot:InteractionPattern;
                 ?dataschema_type ?ds}.
-            ?ds wot:hasFieldSchema ?fs.
+            ?ds swot:hasFieldSchema ?fs.
             ?fs rdf:type ?fs_type.
             values (?ip ?ds ?fs) {(?ip_force ?ds_force ?fs_force)} 
-            filter (?fs_type != wot:FieldSchema)
+            filter (?fs_type != swot:FieldSchema)
             values (?fs_type) {(?fs_type_force)} 
         }"
     forcedBindings:
         dataschema_type:
             type: uri
-            value: wot:hasInputDataSchema|wot:hasOutputDataSchema|wot:hasPropertyDataSchema
+            value: swot:hasInputDataSchema|swot:hasOutputDataSchema|swot:hasPropertyDataSchema
         ip_force:
             type: uri
             value: UNDEF

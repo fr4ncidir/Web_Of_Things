@@ -37,12 +37,12 @@ from cocktail.Action import *
 from cocktail.Event import *
 from cocktail.utils import generate_cocktail_sap, compare_queries
 
-xsd_string = "xsd:string"
-xsd_integer = "xsd:integer"
-xsd_dateTimeStamp = "xsd:dateTimeStamp"
-xsd_ = "xsd:_"
-xsd_literal = "xsd:Literal"
-wot_FieldSchema = "wot:FieldSchema"
+ds_string = "<http://XSDstringDataSchema.org>"
+ds_integer = "<http://XSDintegerDataSchema.org>"
+ds_dateTimeStamp = "<http://XSDdateTimeStampDataSchema.org>"
+ds_genericWebResource = "<http://GenericWebResourceDataSchema.org>"
+ds_json = "<http://jsonDataSchema.org>"
+ds_foaf = "<http://foafDataSchema.org>"
 
 
 def read_all_file(filename):
@@ -67,37 +67,14 @@ class TestCase1_Setup(unittest.TestCase):
         This test checks if the sparql insert of Thing1 and the sum of
         cocktail sparqls have the same effect in the rdf store.
         """
+        self.engine.sparql_update(read_all_file("insert_dataschemas.sparql"))
         self.engine.sparql_update(read_all_file("insert_thing_1.sparql"))
         
         thing_descriptor = "<http://MyFirstWebThingDescription.com>"
         query_all_sparql = self.engine.query_all()
         self.engine.clear()
-        
-        ds1 = DataSchema(
-            self.engine,
-            {"ds_uri": "<http://MyFirstWebThing.com/Action1/DataSchema/input>",
-             "fs_uri": xsd_string,
-             "fs_types": xsd_+", "+wot_FieldSchema}).post()
-        ds2 = DataSchema(
-            self.engine,
-            {"ds_uri": "<http://MyFirstWebThing.com/Action1/DataSchema/output>",
-             "fs_uri": "<http://www.wikipedia.it>",
-             "fs_types": "wot:ResourceURI, "+wot_FieldSchema}).post()
-        ds3 = DataSchema(
-            self.engine,
-            {"ds_uri": "<http://MyFirstWebThing.com/Action2/DataSchema/output>",
-             "fs_uri": xsd_integer,
-             "fs_types": xsd_+", "+wot_FieldSchema}).post()
-        ds4 = DataSchema(
-            self.engine,
-            {"ds_uri": "<http://MyFirstWebThing.com/Event1/DataSchema/output>",
-             "fs_uri": xsd_dateTimeStamp,
-             "fs_types": xsd_+", "+wot_FieldSchema}).post()
-        ds5 = DataSchema(
-            self.engine,
-            {"ds_uri": "<http://MyFirstWebThing.com/Property1/DataSchema/property>",
-             "fs_uri": xsd_string,
-             "fs_types": xsd_+", "+wot_FieldSchema}).post()    
+        self.engine.sparql_update(read_all_file("insert_dataschemas.sparql"))
+
         thing1_uri = "<http://MyFirstWebThing.com>"
 
         property1 = Property(
@@ -107,7 +84,7 @@ class TestCase1_Setup(unittest.TestCase):
              "newName": "Thing1_Property1",
              "newStability": "1000",
              "newWritability": "true",
-             "newDS": ds5.uri,
+             "newDS": ds_string,
              "newPD": "<http://MyFirstWebThing.com/Property1/PropertyData>",
              "newValue": "Hello World!"})
         action1 = Action(
@@ -116,8 +93,8 @@ class TestCase1_Setup(unittest.TestCase):
              "td": thing_descriptor,
              "action": "<http://MyFirstWebThing.com/Action1>",
              "newName": "Thing1_Action1",
-             "ids": ds1.uri,
-             "ods": ds2.uri},
+             "ids": ds_string,
+             "ods": ds_genericWebResource},
             lambda: print("ACTION 1 HANDLER RUN"))
         action2 = Action(
             self.engine,
@@ -125,7 +102,7 @@ class TestCase1_Setup(unittest.TestCase):
              "td": thing_descriptor,
              "action": "<http://MyFirstWebThing.com/Action2>",
              "newName": "Thing1_Action2",
-             "ods": ds3.uri},
+             "ods": ds_integer},
             lambda: print("ACTION 2 HANDLER RUN"),
             forProperties=[property1])
         event1 = Event(
@@ -133,7 +110,7 @@ class TestCase1_Setup(unittest.TestCase):
             {"td": thing_descriptor,
              "event": "<http://MyFirstWebThing.com/Event1>",
              "eName": "Thing1_Event1",
-             "ods": ds4.uri})
+             "ods": ds_dateTimeStamp})
         thing1 = Thing(
             self.engine,
             {"thing": thing1_uri,
@@ -151,42 +128,14 @@ class TestCase1_Setup(unittest.TestCase):
         cocktail sparqls have the same effect in the rdf store.
         """
         thing_descriptor = "<http://MySecondWebThingDescription.com>"
-        self.engine.sap.update_namespaces(
-            "foaf", "http://xmlns.com/foaf/0.1/")
+#        self.engine.sap.update_namespaces(
+#            "foaf", "http://xmlns.com/foaf/0.1/")
+        self.engine.sparql_update(read_all_file("insert_dataschemas.sparql"))
         self.engine.sparql_update(read_all_file("insert_thing_2.sparql"))
         query_all_sparql = self.engine.query_all()
         self.engine.clear()
-        
-        ds1 = DataSchema(
-            self.engine, 
-            {"ds_uri": "<http://MySecondWebThing.com/Action1/DataSchema/input>",
-             "fs_uri": "foaf:",
-             "fs_types": "wot:OntologyURI, "+wot_FieldSchema}).post()
-        ds2 = DataSchema(
-            self.engine, 
-            {"ds_uri": "<http://MySecondWebThing.com/Action1/DataSchema/output>",
-             "fs_uri": xsd_string,
-             "fs_types": xsd_+", "+wot_FieldSchema}).post()
-        ds3 = DataSchema(
-            self.engine, 
-            {"ds_uri": "<http://MySecondWebThing.com/Event1/DataSchema/output>",
-             "fs_uri": xsd_integer,
-             "fs_types": xsd_+", "+wot_FieldSchema}).post()
-        ds4 = DataSchema(
-            self.engine, 
-            {"ds_uri": "<http://MySecondWebThing.com/Event2/DataSchema/output>",
-             "fs_uri": "<http://www.google.it>",
-             "fs_types": "wot:ResourceURI, "+wot_FieldSchema}).post()
-        ds5 = DataSchema(
-            self.engine, 
-            {"ds_uri": "<http://MySecondWebThing.com/Property1/DataSchema/property>",
-             "fs_uri": xsd_literal,
-             "fs_types": xsd_+", "+wot_FieldSchema}).post()
-        ds6 = DataSchema(
-            self.engine, 
-            {"ds_uri": "<http://MySecondWebThing.com/Property2/DataSchema/property>",
-             "fs_uri": xsd_literal,
-             "fs_types": xsd_+", "+wot_FieldSchema}).post()            
+        self.engine.sparql_update(read_all_file("insert_dataschemas.sparql"))
+          
         thing1 = Thing(
             self.engine,
             {"thing": "<http://MySecondWebThing.com>",
@@ -199,7 +148,7 @@ class TestCase1_Setup(unittest.TestCase):
              "newName": "Thing2_Property1",
              "newStability": "0",
              "newWritability": "false",
-             "newDS": ds5.uri,
+             "newDS": ds_json,
              "newPD": "<http://MySecondWebThing.com/Property1/PropertyData>",
              "newValue": '{"json":"content"}'}).post()
         property2 = Property(
@@ -209,7 +158,7 @@ class TestCase1_Setup(unittest.TestCase):
              "newName": "Thing2_Property2",
              "newStability": "75",
              "newWritability": "true",
-             "newDS": ds6.uri,
+             "newDS": ds_string,
              "newPD": "<http://MySecondWebThing.com/Property2/PropertyData>",
              "newValue": "Whatever kind of binary content"}).post()
         action1 = Action(
@@ -218,8 +167,8 @@ class TestCase1_Setup(unittest.TestCase):
              "td": thing_descriptor,
              "action": "<http://MySecondWebThing.com/Action1>",
              "newName": "Thing2_Action1",
-             "ids": ds1.uri,
-             "ods": ds2.uri},
+             "ids": ds_foaf,
+             "ods": ds_string},
             lambda: print("ACTION 1 HANDLER RUN"),
             forProperties=[property1, property2]).post()
         event1 = Event(
@@ -227,14 +176,14 @@ class TestCase1_Setup(unittest.TestCase):
             {"td": thing_descriptor,
              "event": "<http://MySecondWebThing.com/Event1>",
              "eName": "Thing2_Event1",
-             "ods": ds3.uri},
+             "ods": ds_integer},
             forProperties=[property2]).post()
         event2 = Event(
             self.engine,
             {"td": thing_descriptor,
              "event": "<http://MySecondWebThing.com/Event2>",
              "eName": "Thing2_Event2",
-             "ods": ds4.uri}).post()
+             "ods": ds_genericWebResource}).post()
         query_all_cocktail = self.engine.query_all()
         self.assertTrue(compare_queries(
             query_all_cocktail, query_all_sparql, show_diff=True))

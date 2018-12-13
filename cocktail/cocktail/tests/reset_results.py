@@ -55,6 +55,7 @@ def read_all_file(filename):
 
 def setUp(engine):
     engine.clear()
+    engine.sparql_update(read_all_file("insert_dataschemas.sparql"))
     engine.sparql_update(read_all_file("insert_thing_1.sparql"))
     engine.sparql_update(read_all_file("insert_thing_2.sparql"))
     engine.sparql_update(read_all_file("insert_thing_3.sparql"))
@@ -102,11 +103,7 @@ def rebuild_test_3(engine):
     PROPERTY_URI = "<http://TestProperty.com>"
     NEW_PROPERTY_VALUE = "HIJKLMNOP"
     TEST_TD = "<http://TestTD.com>"
-    DataSchema(
-        engine,
-        {"ds_uri": "<http://TestThing.com/Property1/DataSchema/property>",
-         "fs_uri": "xsd:string",
-         "fs_types": "xsd:_, wot:FieldSchema"}).post()
+    
     dummyThing = Thing(
         engine,
         {"thing": THING_URI,
@@ -117,7 +114,7 @@ def rebuild_test_3(engine):
                    "newName": "TEST-PROPERTY",
                    "newStability": "1",
                    "newWritability": "true",
-                   "newDS": "<http://TestThing.com/Property1/DataSchema/property>",
+                   "newDS": "<http://XSDstringDataSchema.org>",
                    "newPD": "<http://TestThing.com/Property1/PropertyData>",
                    "newValue": "ABCDEFG"}
     testProperty = Property(engine, p_fBindings).post()
@@ -147,18 +144,6 @@ def rebuild_test_3(engine):
 def rebuild_test_4(engine):
     setUp(engine)
     THING_URI = "<http://TestThing.com>"
-    DS_URI_INPUT = "<http://TestThing.com/Actions/DataSchema/input>"
-    DS_URI_OUTPUT = "<http://TestThing.com/Actions/DataSchema/output>"
-
-    # Adding new Action Dataschemas and its corresponding FieldSchema
-    DataSchema(engine,
-               {"ds_uri": DS_URI_INPUT,
-                "fs_uri": "xsd:string",
-                "fs_types": "xsd:_, wot:FieldSchema"}).post()
-    DataSchema(engine,
-               {"ds_uri": DS_URI_OUTPUT,
-                "fs_uri": "xsd:integer",
-                "fs_types": "xsd:_, wot:FieldSchema"}).post()
 
     # Adding the new thing
     dummyThing = Thing(
@@ -175,8 +160,8 @@ def rebuild_test_4(engine):
             {"td": "<http://TestTD.com>",
              "action": "<http://TestAction_{}.com>".format(aType.value.lower()),
              "newName": "TEST-ACTION-{}".format(aType.value.lower()),
-             "ids": DS_URI_INPUT,
-             "ods": DS_URI_OUTPUT},
+             "ids": "<http://XSDstringDataSchema.org>",
+             "ods": "<http://XSDintegerDataSchema.org>"},
             lambda: None,
             force_type=aType).post())
 
@@ -200,13 +185,6 @@ def rebuild_test_4(engine):
 def rebuild_test_5(engine):
     setUp(engine)
     THING_URI = "<http://TestThing.com>"
-    DS_URI_OUTPUT = "<http://TestThing.com/Events/DataSchema/output>"
-
-    # Adding new Action Dataschema and its corresponding FieldSchema
-    DataSchema(engine,
-               {"ds_uri": DS_URI_OUTPUT,
-                "fs_uri": "xsd:integer",
-                "fs_types": "xsd:_, wot:FieldSchema"}).post()
 
     # Adding the new thing
     dummyThing = Thing(engine,
@@ -222,7 +200,7 @@ def rebuild_test_5(engine):
             {"td": "<http://TestTD.com>",
              "event": "<http://TestEvent_{}.com>".format(eType.value.lower()),
              "eName": "TEST-EVENT-{}".format(eType.value.lower()),
-             "ods": DS_URI_OUTPUT}, force_type=eType).post())
+             "ods": "<http://XSDintegerDataSchema.org>"}, force_type=eType).post())
 
     # Querying the events
     sparql_query = engine.sap.getQuery("DESCRIBE_EVENT").replace(
@@ -259,7 +237,7 @@ def rebuild_test_6(engine):
                     "newAuthor": "<http://MySecondWebThing.com>",
                     "newIData": action.uri.replace(">", "/instance1/InputData>"),
                     "newIValue": "This is an input string",
-                    "newIDS": action.uri.replace(">", "/DataSchema/input>")}
+                    "newIDS": "<http://XSDstringDataSchema.org>"}
         # posting a fake new request without handler
         instance, subids = action.newRequest(bindings)
         target = resource_filename(
@@ -299,7 +277,7 @@ def rebuild_test_6(engine):
                 {"instance": instance,
                  "oData": action.uri.replace(">", "/instance2/OutputData>"),
                  "oValue": "my output value",
-                 "oDS": action.uri.replace(">", "/DataSchema/output>")})
+                 "oDS": "<http://XSDstringDataSchema.org>"})
             action.action_task = None
             target = resource_filename(__name__, "res_new_instance_output.json")
             logging.warning("Rebuilding {}".format(target))
@@ -322,7 +300,7 @@ def rebuild_test_7(engine):
                     "newEInstance": event.uri.replace(">", "/instance1>"),
                     "newOData": event.uri.replace(">", "/instance1/OutputData>"),
                     "newValue": "2018-06-23T10:05:19.478Z",
-                    "newDS": event.uri.replace(">", "/DataSchema/output>")}
+                    "newDS": "<http://XSDdateTimeStampDataSchema.org>"}
 
         instance = event.notify(bindings)
         target = resource_filename(

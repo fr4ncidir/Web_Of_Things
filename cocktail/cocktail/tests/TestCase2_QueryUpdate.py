@@ -73,6 +73,7 @@ class TestCase2_QueryUpdate(unittest.TestCase):
 
     def setUp(self):
         self.engine.clear()
+        self.engine.sparql_update(read_all_file("insert_dataschemas.sparql"))
         self.engine.sparql_update(read_all_file("insert_thing_1.sparql"))
         self.engine.sparql_update(read_all_file("insert_thing_2.sparql"))
         self.engine.sparql_update(read_all_file("insert_thing_3.sparql"))
@@ -164,13 +165,6 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         NEW_PROPERTY_VALUE = "HIJKLMNOP"
         TEST_TD = "<http://TestTD.com>"
 
-        # Adding new Dataschema and its corresponding FieldSchema
-        DataSchema(
-            self.engine,
-            {"ds_uri": "<http://TestThing.com/Property1/DataSchema/property>",
-             "fs_uri": "xsd:string",
-             "fs_types": "xsd:_, wot:FieldSchema"}).post()
-
         # Adding the new thing
         dummyThing = Thing(
             self.engine,
@@ -183,7 +177,7 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                        "newName": "TEST-PROPERTY",
                        "newStability": "1",
                        "newWritability": "true",
-                       "newDS": "<http://TestThing.com/Property1/DataSchema/property>",
+                       "newDS": "<http://XSDstringDataSchema.org>",
                        "newPD": "<http://TestThing.com/Property1/PropertyData>",
                        "newValue": "ABCDEFG"}
         testProperty = Property(self.engine, p_fBindings).post()
@@ -243,18 +237,6 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         True or False is returned for success or failure.
         """
         THING_URI = "<http://TestThing.com>"
-        DS_URI_INPUT = "<http://TestThing.com/Actions/DataSchema/input>"
-        DS_URI_OUTPUT = "<http://TestThing.com/Actions/DataSchema/output>"
-
-        # Adding new Action Dataschemas and its corresponding FieldSchema
-        DataSchema(self.engine,
-                   {"ds_uri": DS_URI_INPUT,
-                    "fs_uri": "xsd:string",
-                    "fs_types": "xsd:_, wot:FieldSchema"}).post()
-        DataSchema(self.engine,
-                   {"ds_uri": DS_URI_OUTPUT,
-                    "fs_uri": "xsd:integer",
-                    "fs_types": "xsd:_, wot:FieldSchema"}).post()
 
         # Adding the new thing
         dummyThing = Thing(self.engine,
@@ -270,8 +252,8 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                 {"td": "<http://TestTD.com>",
                  "action": "<http://TestAction_{}.com>".format(aType.value.lower()),
                  "newName": "TEST-ACTION-{}".format(aType.value.lower()),
-                 "ids": DS_URI_INPUT,
-                 "ods": DS_URI_OUTPUT},
+                 "ids": "<http://XSDstringDataSchema.org>",
+                 "ods": "<http://XSDintegerDataSchema.org>"},
                 lambda: None,
                 force_type=aType).post())
 
@@ -313,13 +295,6 @@ class TestCase2_QueryUpdate(unittest.TestCase):
         True or False is returned for success or failure.
         """
         THING_URI = "<http://TestThing.com>"
-        DS_URI_OUTPUT = "<http://TestThing.com/Events/DataSchema/output>"
-
-        # Adding new Action Dataschema and its corresponding FieldSchema
-        DataSchema(self.engine,
-                   {"ds_uri": DS_URI_OUTPUT,
-                    "fs_uri": "xsd:integer",
-                    "fs_types": "xsd:_, wot:FieldSchema"}).post()
 
         # Adding the new thing
         dummyThing = Thing(self.engine,
@@ -335,7 +310,7 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                 {"td": "<http://TestTD.com>",
                  "event": "<http://TestEvent_{}.com>".format(eType.value.lower()),
                  "eName": "TEST-EVENT-{}".format(eType.value.lower()),
-                 "ods": DS_URI_OUTPUT}, force_type=eType).post())
+                 "ods": "<http://XSDintegerDataSchema.org>"}, force_type=eType).post())
 
         # Querying the events
         sparql_query = self.engine.sap.getQuery("DESCRIBE_EVENT").replace(
@@ -417,7 +392,7 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                         "newAuthor": "<http://MySecondWebThing.com>",
                         "newIData": action.uri.replace(">", "/instance1/InputData>"),
                         "newIValue": "This is an input string",
-                        "newIDS": action.uri.replace(">", "/DataSchema/input>")}
+                        "newIDS": "<http://XSDstringDataSchema.org>"}
 
             def confirm_handler(added, removed):
                 self.assertTrue(switch_handler(
@@ -466,7 +441,7 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                     {"instance": instance,
                      "oData": action.uri.replace(">", "/instance2/OutputData>"),
                      "oValue": "my output value",
-                     "oDS": action.uri.replace(">", "/DataSchema/output>")})
+                     "oDS": "<http://XSDstringDataSchema.org>"})
             # Remove instances and outputs
             actions_copy[index].disable()
             actions_copy[index].deleteInstance(instance)
@@ -493,7 +468,7 @@ class TestCase2_QueryUpdate(unittest.TestCase):
                         "newEInstance": event.uri.replace(">", "/instance1>"),
                         "newOData": event.uri.replace(">", "/instance1/OutputData>"),
                         "newValue": "2018-06-23T10:05:19.478Z",
-                        "newDS": event.uri.replace(">", "/DataSchema/output>")}
+                        "newDS": "<http://XSDdateTimeStampDataSchema.org>"}
 
             notification_iteration = 0
 

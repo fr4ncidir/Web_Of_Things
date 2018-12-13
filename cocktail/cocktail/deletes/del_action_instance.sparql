@@ -9,33 +9,32 @@
 DELETE_ACTION_INSTANCE:
     sparql: "
         delete {
-			?action wot:hasActionInstance ?aInstance.
-            ?aInstance   rdf:type wot:ActionInstance;
-							wot:hasRequestTimeStamp ?reqTS;
-							wot:hasCompletionTimeStamp ?comTS;
-							wot:hasConfirmationTimeStamp ?confTS;
-                            wot:requestedBy ?author;
-                            wot:hasInputData ?IData.
-            ?IData   dul:hasDataValue ?IValue;
-                        wot:hasInputDataSchema ?IDS.
-			?aInstance wot:hasOutputData ?OData.
-			?OData dul:hasDataValue ?OValue;
-					wot:hasOutputDataSchema ?ODS}
+			?action swot:hasActionInstance ?aInstance.
+            ?aInstance   rdf:type swot:ActionInstance, swot:Instance;
+							swot:hasRequestTimeStamp ?reqTS;
+							swot:hasCompletionTimeStamp ?comTS;
+							swot:hasConfirmationTimeStamp ?confTS;
+                            swot:requestedBy ?author;
+                            swot:hasInputData ?IData.
+            ?IData   swot:hasValue ?IValue;
+                        swot:hasInputDataSchema ?IDS.
+			?aInstance swot:hasOutputData ?OData.
+			?OData swot:hasValue ?OValue;
+					swot:hasOutputDataSchema ?ODS}
 		where {
-			?action wot:hasActionInstance ?aInstance.
-            ?aInstance   rdf:type wot:ActionInstance;
-							wot:hasRequestTimeStamp ?reqTS;
-							wot:hasCompletionTimeStamp ?comTS;
-							wot:hasConfirmationTimeStamp ?confTS;
-                            wot:requestedBy ?author.
-            optional {?aInstance wot:hasInputData ?IData.
-				?IData   dul:hasDataValue ?IValue;
-							wot:hasInputDataSchema ?IDS}.
-			optional {?aInstance wot:hasOutputData ?OData.
-				?OData dul:hasDataValue ?OValue;
-						wot:hasOutputDataSchema ?ODS}
-		}
-		"
+			?action swot:hasActionInstance ?aInstance.
+            ?aInstance   rdf:type swot:ActionInstance, swot:Instance;
+							swot:hasRequestTimeStamp ?reqTS;
+							swot:hasCompletionTimeStamp ?comTS;
+							swot:hasConfirmationTimeStamp ?confTS;
+                            swot:requestedBy ?author.
+            optional {?aInstance swot:hasInputData ?IData.
+				optional {?IData   swot:hasValue ?IValue}
+				?IData swot:hasInputDataSchema ?IDS}.
+			optional {?aInstance swot:hasOutputData ?OData.
+				optional {?OData swot:hasValue ?OValue}
+				?OData swot:hasOutputDataSchema ?ODS}
+		}"
     forcedBindings:
         aInstance:
             type: uri

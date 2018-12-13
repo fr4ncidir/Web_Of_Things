@@ -10,16 +10,16 @@
 NEW_THING:
     sparql: "
         delete {
-            ?thing  wot:hasName ?oldName;
-                    wot:hasThingDescription ?oldTD }
+            ?thing  swot:hasName ?oldName;
+                    swot:hasThingDescription ?oldTD }
         insert {
-            ?thing  rdf:type wot:Thing, dul:Agent;
-                    wot:hasName ?newName;
-                    wot:hasThingDescription ?newTD.
-            ?newTD rdf:type wot:ThingDescription }
+            ?thing  rdf:type swot:Thing;
+                    swot:hasName ?newName;
+                    swot:hasThingDescription ?newTD.
+            ?newTD rdf:type swot:ThingDescription }
         where {
-            optional {?thing wot:hasName ?oldName;
-                    wot:hasThingDescription ?oldTD }
+            optional {?thing swot:hasName ?oldName;
+                    swot:hasThingDescription ?oldTD }
         }"
     forcedBindings:
         thing:

@@ -10,19 +10,19 @@ SUBSCRIBE_ACTION_INSTANCE:
     sparql: "
         select *
         where {
-            ?thing wot:hasThingDescription/wot:hasAction ?action.
-            ?action wot:hasActionInstance ?aInstance.
-            ?aInstance  rdf:type wot:ActionInstance;
-						wot:hasRequestTimeStamp ?aTS;
-                        wot:requestedBy ?author.
+            ?thing swot:hasThingDescription/swot:hasAction ?action.
+            ?action swot:hasActionInstance ?aInstance.
+            ?aInstance  rdf:type swot:ActionInstance;
+						swot:hasRequestTimeStamp ?aTS;
+                        swot:requestedBy ?author.
             optional {
-                ?aInstance wot:hasInputData ?iData.
-                ?iData  dul:hasDataValue ?iValue;
-                        wot:hasInputDataSchema ?iDS.
-                ?action wot:hasInputDataSchema ?iDS.
-                ?iDS wot:hasFieldSchema ?iFS.
+                ?aInstance swot:hasInputData ?iData.
+                optional{?iData swot:hasValue ?iValue}
+                ?iData swot:hasInputDataSchema ?iDS.
+                ?action swot:hasInputDataSchema ?iDS.
+                ?iDS swot:hasFieldSchema ?iFS.
                 ?iFS rdf:type ?iFS_type.
-                filter (?iFS_type != wot:FieldSchema)
+                filter (?iFS_type != swot:FieldSchema)
             }
         }"
     forcedBindings:

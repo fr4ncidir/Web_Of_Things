@@ -8,21 +8,22 @@
 
 DESCRIBE_PROPERTY:
     sparql: "
-        select ?property ?pName ?pStability ?pWritability ?pDS ?pValue ?pFS ?pFS_type (group_concat(?ip; separator='; ') as ?ipattern)
+        select ?property ?pName ?pStability ?pWritability ?pDS ?pData ?pValue ?pFS ?pFS_type (group_concat(?ip; separator='; ') as ?ipattern)
         where {
-            ?property   rdf:type wot:Property;
-                        wot:hasName ?pName;
-                        wot:hasStability ?pStability;
-                        wot:isWritable ?pWritability;
-                        wot:hasPropertyDataSchema ?pDS;
-                        wot:hasPropertyData/dul:hasDataValue ?pValue.
-            ?pDS wot:hasFieldSchema ?pFS.
+            ?property   rdf:type swot:Property;
+                        swot:hasName ?pName;
+                        swot:hasStability ?pStability;
+                        swot:isWritable ?pWritability;
+                        swot:hasPropertyDataSchema ?pDS;
+                        swot:hasPropertyData ?pData.
+            optional {?pData swot:hasValue ?pValue}.
+            ?pDS swot:hasFieldSchema ?pFS.
             ?pFS rdf:type ?pFS_type.
-            optional {?ip wot:forProperty ?property}.
-            filter (?pFS_type != wot:FieldSchema).
+            optional {?ip swot:forProperty ?property}.
+            filter (?pFS_type != swot:FieldSchema).
             values (?property) {(?property_uri)}
         }
-group by ?property ?pName ?pStability ?pWritability ?pDS ?pValue ?pFS ?pFS_type"
+group by ?property ?pName ?pStability ?pWritability ?pDS ?pData ?pValue ?pFS ?pFS_type"
     forcedBindings:
         property_uri:
             type: uri

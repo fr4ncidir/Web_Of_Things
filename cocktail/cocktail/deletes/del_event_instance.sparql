@@ -9,23 +9,22 @@
 DELETE_EVENT_INSTANCE:
     sparql: "
         delete {
-            ?event wot:hasEventInstance ?eInstance.
-            ?eInstance  rdf:type wot:EventInstance;
-						wot:occurredAt ?eTS;
-                        wot:hasOutputData ?oData.
-                ?oData  dul:hasDataValue ?oValue;
-                        wot:hasOutputDataSchema ?oDS
+            ?event swot:hasEventInstance ?eInstance.
+            ?eInstance  rdf:type swot:EventInstance, swot:Instance;
+						swot:occurredAt ?eTS;
+                        swot:hasOutputData ?oData.
+                ?oData  swot:hasValue ?oValue;
+                        swot:hasOutputDataSchema ?oDS
 		}
 		where {
-            ?event wot:hasEventInstance ?eInstance.
-            ?eInstance  rdf:type wot:EventInstance;
-						wot:occurredAt ?eTS.
+            ?event swot:hasEventInstance ?eInstance.
+            ?eInstance  rdf:type swot:EventInstance, swot:Instance;
+						swot:occurredAt ?eTS.
             optional {
-                ?eInstance wot:hasOutputData ?oData.
-                ?oData  dul:hasDataValue ?oValue;
-                        wot:hasOutputDataSchema ?oDS}
-		}
-		"
+                ?eInstance swot:hasOutputData ?oData.
+                optional {?oData swot:hasValue ?oValue}
+                ?oData swot:hasOutputDataSchema ?oDS}
+		}"
     forcedBindings:
         eInstance:
             type: uri
