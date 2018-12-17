@@ -22,9 +22,12 @@
 #  
 #  
 
+from sepy.SAPObject import SAPObject
 from sepy.tablaze import tablify
+from .utils import generate_cocktail_sap
 
 import logging
+import yaml
 
 logger = logging.getLogger("cocktail_log")
 
@@ -52,9 +55,20 @@ class DataSchema:
         self._sepa.update("NEW_DATASCHEMA", forcedBindings=self._bindings)
         return self
         
-    @classmethod
-    def getBindingList(self):
-        return self._sepa.sap.updates["NEW_DATASCHEMA"]["forcedBindings"].keys()
+    @staticmethod
+    def getBindingList(sap_object=None):
+        """
+        Give as input to this function a SAPObject containing the Cocktail
+        sap, (or None, if you want to generate it on-the-go), to see the
+        bindings necessary to build up a DataSchema.
+        """
+        if sap_object is None:
+            sap = SAPObject(yaml.load(generate_cocktail_sap(None)), log=logging.ERROR)
+            result = sap.updates["NEW_DATASCHEMA"]["forcedBindings"].keys()
+        else:
+            result = sap_object.updates["NEW_DATASCHEMA"]["forcedBindings"].keys()
+        return result
+        
     
     @staticmethod
     def discover(sepa, ds="UNDEF", nice_output=False):
