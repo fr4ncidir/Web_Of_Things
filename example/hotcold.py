@@ -25,15 +25,12 @@
 from cocktail.Thing import Thing
 from cocktail.Action import *
 from cocktail.Event import *
+from cocktail.Property import *
 
-from sepy.SEPA import SEPA
-from sepy.SAPObject import SAPObject
-
-from dataschemas import ds_psi, ds_lambda
+from dataschemas import ds_psi, ds_lambda, YSAPEngine
 from time import sleep
 from threading import Lock
 
-import yaml
 import json
 import sys
 
@@ -41,65 +38,66 @@ import sys
 HotColdURI = "<http://HotCold.swot>"
 HotColdTD = "<http://HotCold.swot/TD>"
 HotColdActionURI = "<http://HotCold.swot/MainHotColdAction>"
+HotColdPropertyURI = "<http://HotCold.swot/MainHotColdProperty>"
 temperatureSensorsList = {}
 engine = None
-HotColdLock = Lock()
-CurrentStatus = "off"
-CurrentTarget = 15
+
+HC_Property_lock = Lock()
+HC_Property = None
+HC_Property_bindings = {}
 
 def main(args):
     global engine
-    global CurrentStatus
+    global HC_Property_bindings
+    global HC_Property
     # opening the sap file, and creating the SEPA instance
-    with open("./cocktail_sap.ysap", "r") as sap_file:
-        ysap = SAPObject(yaml.load(sap_file))
-    engine = SEPA(sapObject=ysap)
+    engine = YSAPEngine("./cocktail_sap.ysap")
     if "clear" in args:
         engine.clear()
         
     # Setup the Hot/Cold Action
     mainHC_Action = Action(
         engine,
-        {"thing": HotColdURI,
-         "td": HotColdTD,
+        {"td": HotColdTD,
          "action": HotColdActionURI,
          "newName": "MainHotColdAction",
          "ids": ds_psi},
          mainHotColdActionLogic)
-        
+    
+    HC_Property_bindings = {"td": HotColdTD,
+         "property": HotColdPropertyURI,
+         "newName": "InternalStatusHotColdProperty",
+         "newStability": "0",
+         "newWritability": "false",
+         "newDS": ds_psi,
+         "newPD": "<http://HotCold.swot/MainHotColdProperty/Data>",
+         "newValue": '{"now": "off", "target": "15"}'}
+    HC_Property = Property(engine, HC_Property_bindings)
+    
     # Setup and post the WebThing
     thermostat = Thing(
         engine,
         {"thing": HotColdURI,
          "newName": "HotCold",
-         "newTD": HotColdTD}).post(interaction_patterns=[mainHC_Action])
+         "newTD": HotColdTD}).post(interaction_patterns=[mainHC_Action, HC_Property])
          
     mainHC_Action.enable()
     
+    local_engine = YSAPEngine("./example.ysap")
     # adding context triples
-    engine.sparql_update("""
-prefix sosa: <http://www.w3.org/ns/sosa/>
-prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-prefix ns: <http://wot.arces.unibo.it/localNamespace#>
-insert data {{ {} rdf:type sosa:Actuator.
-{} sosa:actsOnProperty ns:Temperature }}""".format(HotColdURI,HotColdURI))
+    local_engine.update("ADD_HOTCOLD_CONTEXT_TRIPLES", forcedBindings={"hc": HotColdURI})
 
     # main hotcold event search logic
-    engine.sparql_subscribe("""
-prefix sosa: <http://www.w3.org/ns/sosa/>
-prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-prefix ns: <http://wot.arces.unibo.it/localNamespace#>
-prefix swot: <http://wot.arces.unibo.it/ontology/web_of_things#>
-select ?event where {{
-    ?thing  rdf:type swot:Thing, sosa:Sensor;
-            sosa:observes ns:Temperature;
-            swot:hasThingDescription/swot:hasEvent ?event.
-    ?action swot:hasOutputDataSchema {} }}""".format(ds_lambda), "hotcold_subscription", handler=available_sensors)
+    local_engine.subscribe(
+        "HOTCOLD_SMART_DISCOVERY", 
+        "hotcold_subscription", 
+        forcedBindings={"ds": ds_lambda}, 
+        handler=available_sensors)
     
     while True:
         try:
             sleep(10)
-            print("Device status is currently {}".format(CurrentStatus))
+            print("Device status is currently {}".format(HC_Property.value))
         except KeyboardInterrupt:
             print("Got KeyboardInterrupt!")
             mainHC_Action.disable()
@@ -107,21 +105,24 @@ select ?event where {{
     return 0
     
 
+def updatePropertyValWithLock(newVal):
+    global HC_Property_lock
+    global HC_Property_bindings
+    global HC_Property
+    with HC_Property_lock:
+        HC_Property_bindings["newValue"] = newVal
+        HC_Property = Property(engine, HC_Property_bindings).post()
+
 def mainHotColdActionLogic(added, removed):
-    global CurrentStatus
-    global CurrentTarget
     for item in added:
         parameter = json.loads(item["iValue"]["value"])
         author = item["author"]["value"]
-        if parameter["now"] == CurrentStatus:
+        if parameter["now"] == json.loads(HC_Property.value)["now"]:
             print("Ignoring {}'s request: already doing it".format(author))
         else:
             print("{} requested execution of {} at {} with parameter {}".format(
                 author, HotColdActionURI, item["aTS"]["value"], parameter))
-            HotColdLock.acquire()
-            CurrentStatus = parameter["now"]
-            CurrentTarget = parameter["target"]
-            HotColdLock.release()
+            updatePropertyValWithLock(item["iValue"]["value"])
     
 
 def available_sensors(added, removed):
@@ -138,15 +139,17 @@ def available_sensors(added, removed):
     
     
 def temperature_handler(added, removed):
-    global CurrentStatus
+    global HC_Property
+    property_json_value = json.loads(HC_Property.value)
+    CurrentStatus = property_json_value["now"]
+    CurrentTarget = property_json_value["target"]
     for item in added:
         temperature = float(item["oValue"]["value"])
         print("Received new temperature: {}°C".format(temperature))
         if ((CurrentStatus=="warming") and (temperature > CurrentTarget)) or ((CurrentStatus=="cooling") and (temperature < CurrentTarget)):
             print("Switching off the heating/cooling device")
-            HotColdLock.acquire()
-            CurrentStatus = "off"
-            HotColdLock.release()
+            property_json_value["now"] = "off"
+            updatePropertyValWithLock(str(property_json_value).replace("'",'"'))
     
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

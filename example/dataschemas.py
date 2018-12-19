@@ -36,11 +36,15 @@ ds_psi = "<http://HotColdJSON-DS>"
 ds_lambda = "<http://FloatDataSchema>"
 
 
+def YSAPEngine(path_to_ysap):
+    with open(path_to_ysap, "r") as sap_file:
+        ysap = SAPObject(yaml.load(sap_file))
+    return SEPA(sapObject=ysap)
+
+
 def main(args):
     # opening the sap file, and creating the SEPA instance
-    with open("./cocktail_sap.ysap", "r") as sap_file:
-        ysap = SAPObject(yaml.load(sap_file))
-    engine = SEPA(sapObject=ysap)
+    engine = YSAPEngine("./cocktail_sap.ysap")
     if "clear" in args:
         engine.clear()
     
@@ -61,14 +65,6 @@ def main(args):
         {"ds_uri": ds_lambda,
          "fs_uri": "_:FloatFS-BlankNode",
          "fs_types": "swot:FieldSchema, xsd:float"}).post()
-         
-    # context triples
-        # adding context triples
-    engine.sparql_update("""
-prefix sosa: <http://www.w3.org/ns/sosa/>
-prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-prefix ns: <http://wot.arces.unibo.it/localNamespace#>
-insert data {ns:Temperature rdf:type sosa:ActuatableProperty, sosa:ObservableProperty }""")
     return 0
 
 if __name__ == '__main__':
