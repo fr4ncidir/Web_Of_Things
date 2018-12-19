@@ -32,7 +32,7 @@ queries:
                 ?thing  rdf:type swot:Thing, sosa:Sensor;
                         sosa:observes ns:Temperature;
                         swot:hasThingDescription/swot:hasEvent ?event.
-                ?action swot:hasOutputDataSchema ?ds }"
+                ?event swot:hasOutputDataSchema ?ds }"
         forcedBindings:
             ds:
                 type: uri

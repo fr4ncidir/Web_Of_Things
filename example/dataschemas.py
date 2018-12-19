@@ -34,6 +34,7 @@ from sepy.SAPObject import SAPObject
 ds_threshold = "<http://ThresholdJSON-DS>"
 ds_psi = "<http://HotColdJSON-DS>"
 ds_lambda = "<http://FloatDataSchema>"
+ds_datetime = "<http://DateTimeDataSchema>"
 
 
 def YSAPEngine(path_to_ysap):
@@ -65,6 +66,12 @@ def main(args):
         {"ds_uri": ds_lambda,
          "fs_uri": "_:FloatFS-BlankNode",
          "fs_types": "swot:FieldSchema, xsd:float"}).post()
+         
+    datetime_dataschema = DataSchema(
+        engine,
+        {"ds_uri": ds_datetime,
+         "fs_uri": "_:DatetuneFS-BlankNode",
+         "fs_types": "swot:FieldSchema, xsd:dateTime"}).post()
     return 0
 
 if __name__ == '__main__':
