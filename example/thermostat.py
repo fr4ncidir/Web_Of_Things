@@ -23,7 +23,7 @@
 #  
 
 import sys
-import temperature
+from temperature2 import simulate
 
 from cocktail.Thing import Thing
 from cocktail.Action import *
@@ -95,15 +95,13 @@ def main(args):
     
     # temperature Event triggering logic
     event_bindings = {"event": temperature_Event.uri, "newDS": ds_lambda}
-    T_current = 39
     while True:
         try:
-            sleep(5)
+            sleep(2)
             unique_id = uuid4()
             event_bindings["newEInstance"] = "<http://MyThermostat.swot/TemperatureEvent/Instance_{}>".format(unique_id)
             event_bindings["newOData"] = "<http://MyThermostat.swot/TemperatureEvent/Data_{}>".format(unique_id)
-            T_current = temperature.simulator(engine, T_current, 5)
-            event_bindings["newValue"] = str(T_current)
+            event_bindings["newValue"] = str(simulate())
             temperature_Event.notify(event_bindings)
             with thresholdLock:
                 if float(event_bindings["newValue"]) < T_low:
@@ -137,7 +135,7 @@ def trigger_action(message):
         if actuatorList == []:
             print("No trigger targets!")
         else: 
-            print("Triggering {}".format(actuatorList))
+            print("Triggering {} - {}".format(actuatorList, message))
             bindings = {"newAuthor": ThermostatURI, "newIValue": message, "newIDS": ds_psi}
             for action in actuatorList:
                 action_object = Action.buildFromQuery(engine, action)

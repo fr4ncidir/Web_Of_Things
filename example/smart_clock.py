@@ -29,7 +29,7 @@ from dataschemas import ds_datetime, ds_lambda, YSAPEngine
 from time import sleep, time
 from datetime import datetime
 from uuid import uuid4
-from temperature import simulator
+from temperature2 import simulate
 
 import sys
 
@@ -67,7 +67,7 @@ def main(args):
             whatTimeIsIt.post_output(
                 {"instance": added[0]["aInstance"]["value"], 
                  "oData": "<http://SmartClock.swot/TemperatureAction/Data_{}>".format(uuid4()),
-                 "oValue": str(simulator(engine,25,2)),
+                 "oValue": str(simulate()),
                  "oDS": ds_lambda})
         
     whatsTheTemperature = Action(
