@@ -130,8 +130,11 @@ def main(args):
     httpd = HTTPServer((params["HostName"], params["PortNumber"]), Server)
         
     tempT = TempThread()
+    tempT.daemon = True
     tempT.start()
-    TempSetupThread().start()
+    guithread = TempSetupThread()
+    guithread.daemon = True
+    guithread.start()
     engine = YSAPEngine("./cocktail_sap.ysap")
     subid = engine.subscribe("DESCRIBE_PROPERTY", "tempsimulator", 
         forcedBindings={"property_uri": "<http://HotCold.swot/MainHotColdProperty>"}, 

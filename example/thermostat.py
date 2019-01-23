@@ -23,7 +23,7 @@
 #  
 
 import sys
-from temperature2 import simulate
+from temperature import simulate
 
 from cocktail.Thing import Thing
 from cocktail.Action import *
@@ -80,6 +80,9 @@ def main(args):
             interaction_patterns=[threshold_Action, temperature_Event])
     
     local_engine = YSAPEngine("./example.ysap")
+    
+    thermostat.setupTD_Server("localhost",8321)
+    
     # adding context triples
     local_engine.update("ADD_THERMOSTAT_CONTEXT_TRIPLES", forcedBindings={"th": ThermostatURI})
     
@@ -113,6 +116,12 @@ def main(args):
         except KeyboardInterrupt:
             print("Got KeyboardInterrupt!")
             threshold_Action.disable()
+            thermostat.stopTD_Server()
+            break
+        except:
+            print("Temperature simulation failed! Check the simulation server")
+            threshold_Action.disable()
+            thermostat.stopTD_Server()
             break
     return 0
 

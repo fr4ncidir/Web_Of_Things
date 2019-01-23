@@ -12,12 +12,14 @@ JSONLD_CONSTRUCT:
                 swot:hasThingDescription ?td;
                 swot:hasName ?tName;
                 swot:hasSubThing ?subThing.
-            ?td swot:hasInteractionPattern ?ip.
+            ?td swot:hasInteractionPattern ?ip;
+                rdf:type swot:ThingDescription.
             ?ip rdf:type ?ip_type;
                 swot:hasName ?ipatternName.
             ?ip ?allDSrelation ?DS.
-            ?DS swot:hasFieldSchema ?FS.
-            ?FS rdf:type ?iFS_type.
+            ?DS rdf:type swot:DataSchema;
+                swot:hasFieldSchema ?FS.
+            ?FS rdf:type ?FS_type.
             ?ip swot:hasStability ?pStability;
                 swot:isWritable ?pWritability;
                 swot:hasPropertyData ?pData.
@@ -28,12 +30,14 @@ JSONLD_CONSTRUCT:
                 swot:hasThingDescription ?td;
                 swot:hasName ?tName.
             optional {?thing swot:hasSubThing ?subThing}.
-            ?td swot:hasInteractionPattern ?ip.
+            ?td swot:hasInteractionPattern ?ip;
+                rdf:type swot:ThingDescription.
             ?ip rdf:type ?ip_type;
                 swot:hasName ?ipatternName.
             optional {
                 ?ip ?allDSrelation ?DS.
-                ?DS swot:hasFieldSchema ?FS.
+                ?DS rdf:type swot:DataSchema;
+                    swot:hasFieldSchema ?FS.
                 ?FS rdf:type ?FS_type. }
             optional {
                 ?ip swot:hasStability ?pStability;
